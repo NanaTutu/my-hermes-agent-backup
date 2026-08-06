@@ -87,3 +87,5 @@ A literal `-m` failure is NOT evidence the alias is misconfigured — check
 
 - ChatGPT/openai-codex walkthrough (exact commands, transcript of the
   literal-`-m` failure): `references/chatgpt-openai-codex-walkthrough.md`
+- Auxiliary vision when `auto` finds no backend (free vision model on an
+  existing provider, dead ends to avoid): `references/auxiliary-vision-config.md`

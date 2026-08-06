@@ -92,6 +92,11 @@ compression:
   idle_compact_after_seconds: 0
 prompt_caching:
   cache_ttl: 5m
+auxiliary:
+  vision:
+    provider: opencode-zen
+    model: mimo-v2.5-free
+    timeout: 120
 display:
   compact: false
   busy_input_mode: interrupt
@@ -126,6 +131,8 @@ delegation:
   max_iterations: 50
 skills:
   creation_nudge_interval: 15
+command_allowlist:
+  - script execution via -e/-c flag
 code_execution:
   timeout: 300
   max_tool_calls: 50
@@ -227,6 +234,13 @@ platforms:
       chat_id: '806045604'
       name: NaNa
       user_id: '806045604'
+mcp_servers:
+  composio:
+    url: https://connect.composio.dev/mcp
+    connect_timeout: 90.0
+    headers:
+      Authorization: Bearer ${MCP_COMPOSIO_API_KEY}
+    enabled: true
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,
