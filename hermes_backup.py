@@ -209,15 +209,26 @@ def sha256_file(path: Path) -> str:
 def is_files(root: Path) -> list[Path]:
     """Recursively list regular files under root, applying is_forbidden as we
     walk so forbidden subtrees are pruned early. Returns absolute paths."""
+    return _walk_files(root, prune=True)
+
+
+def all_files(root: Path) -> list[Path]:
+    """Like is_files but WITHOUT pruning — used for pruning passes so files
+    hidden inside forbidden subtrees can still be found and removed."""
+    return _walk_files(root, prune=False)
+
+
+def _walk_files(root: Path, *, prune: bool) -> list[Path]:
     out: list[Path] = []
     if not root.is_dir():
         return out
     for dirpath, dirnames, filenames in os.walk(root):
         dp = Path(dirpath)
-        dirnames[:] = [d for d in dirnames if not is_forbidden(dp / d)]
+        if prune:
+            dirnames[:] = [d for d in dirnames if not is_forbidden(dp / d)]
         for fn in filenames:
             p = dp / fn
-            if p.is_file() and not is_forbidden(p):
+            if p.is_file():
                 out.append(p)
     return out
 
@@ -278,7 +289,7 @@ def main() -> int:
     # under state/ that are no longer produced (keeps accidental cruft from
     # lingering in the backup).
     desired = set(dest_base / f.relative_to(HERMES_HOME) for f in srcs)
-    for existing in is_files(dest_base):
+    for existing in all_files(dest_base):
         rel = existing.relative_to(dest_base)
         # prune forbidden files even if their source still exists (e.g. files
         # mirrored before the forbid list was tightened)
