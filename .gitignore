@@ -1,0 +1,41 @@
+# Hermes state backup - safety net. Never commit secrets here.
+# (The sync script already whitelists; this is defense in depth.)
+
+# secrets & credentials
+.env
+.env.*
+auth.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+
+# databases & runtime
+*.db
+*.db-shm
+*.db-wal
+*.lock
+*.log
+state.db
+kanban.db
+
+# caches & artifacts
+cache/
+logs/
+sessions/
+images/
+image_cache/
+audio_cache/
+__pycache__/
+*.pyc
+
+# local source tree is not part of the backup
+hermes-agent/
+node/
+bin/
+venv/
+
+# macOS/Windows noise
+.DS_Store
+Thumbs.db
