@@ -219,6 +219,14 @@ plugins:
   entries:
     hermes-backup:
       allow_tool_override: false
+platforms:
+  telegram:
+    enabled: true
+    home_channel:
+      platform: telegram
+      chat_id: '806045604'
+      name: NaNa
+      user_id: '806045604'
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,
