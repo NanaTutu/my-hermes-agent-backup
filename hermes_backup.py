@@ -175,6 +175,31 @@ def log(msg: str) -> None:
     print(f"[hermes-backup] {msg}", flush=True)
 
 
+def notify_telegram(message: str) -> None:
+    """Send a one-line update to the configured Telegram home channel.
+
+    Routes through `hermes send` (which works without a running gateway for
+    bot-token platforms) rather than calling the Telegram API directly, so it
+    reuses the same credential source as everything else. Failure to notify is
+    never fatal to the backup — it is logged and ignored.
+    """
+    try:
+        scripts_dir = Path(sys.executable).resolve().parent
+        hermes = scripts_dir / "hermes.exe"
+        if not hermes.exists():
+            log(f"warn: hermes.exe not found at {hermes}; skipping TG notify")
+            return
+        r = subprocess.run(
+            [str(hermes), "send", "--to", "telegram", message, "--quiet"],
+            capture_output=True, text=True, timeout=30,
+        )
+        if r.returncode != 0:
+            log("warn: TG notify failed: " + (r.stderr.strip() or "exit "
+                                               + str(r.returncode)))
+    except Exception as exc:  # never let a notification break the backup
+        log(f"warn: TG notify error: {exc}")
+
+
 def read_token() -> str | None:
     env_path = HERMES_HOME / ".env"
     if not env_path.exists():
@@ -355,8 +380,13 @@ def main() -> int:
     rp = run_git(["push", "-u", "origin", "main"], token=token, cwd=str(git_root))
     if rp.returncode != 0:
         log("PUSH FAILED: " + (rp.stderr.strip() or rp.stdout.strip() or "unknown"))
+        notify_telegram(f"[hermes-backup] PUSH FAILED: {rp.stderr.strip()[:200]}")
         return 1
     log("committed and pushed to GitHub")
+    notify_telegram(
+        f"[hermes-backup] committed and pushed {msg}\n"
+        f"files: {len(copied)} | repo: hermes-backup (github.com/NanaTutu)"
+    )
     return 0
 
 

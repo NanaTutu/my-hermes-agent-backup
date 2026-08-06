@@ -90,3 +90,13 @@ Ad-hoc verify (tempfile, OS-safe): compile, secret scanner catches synthetic
 creds, forbid allow/deny lists, `collect_source_files` clean, dry-run to temp
 mirror asserting staged tree has no forbidden/secrets. Env for dry-run:
 `HERMES_BACKUP_MIRROR` (not STAGING).
+
+## Telegram notifications
+
+`hermes_backup.py` sends a Telegram update via `hermes send --to telegram`
+(no running gateway required) on two outcomes: successful push (commit+files)
+and PUSH FAILED (error snippet). Silent on no-op runs — no noise each session.
+`notify_telegram()` resolves `hermes.exe` next to `sys.executable` in the venv
+Scripts dir; failure to notify never fails the backup (logged warn only).
+Test: `hermes_backup.py` after any real change should produce a TG message with
+`message_id` (verify with `hermes send --json`).
