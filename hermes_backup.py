@@ -70,7 +70,8 @@ WHITELIST = [
 FORBIDDEN_SUFFIXES = {".db", ".db-shm", ".db-wal", ".lock", ".log", ".lck",
                       ".key", ".pem", ".crt", ".p12", ".pfx", ".tmp"}
 FORBIDDEN_DIR_NAMES = {".env", "venv", "node_modules", "__pycache__", "bin",
-                       "models", ".curator_backups", ".git", ".curator_archives"}
+                       "models", ".curator_backups", ".git", ".curator_archives",
+                       "sessions", "logs", "profiles", "state"}
 FORBIDDEN_FILE_NAMES = {".env", "auth.json", "auth.lock",
                         ".usage.json", ".curator_state", ".bundled_manifest"}
 FORBIDDEN_FULL = {"skills/.curator_backups", "skills/.usage.json"}
@@ -96,7 +97,10 @@ HARD_PATTERNS = [
 
 # Shape patterns: abort only if the matched value is NOT placeholder-shaped.
 SHAPE_PATTERNS = [
+    re.compile(r"\bsk-ant-[A-Za-z0-9-]{16,}\b"),
     re.compile(r"\bsk-[A-Za-z0-9]{16,}\b"),
+    # project-scoped OpenAI keys (sk-proj-... with hyphens/underscores)
+    re.compile(r"\bsk-proj-[A-Za-z0-9_-]{16,}\b"),
     re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}\b"),
     re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
     re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{20,}\b"),
