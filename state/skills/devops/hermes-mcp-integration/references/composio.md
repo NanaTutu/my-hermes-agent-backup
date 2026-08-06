@@ -35,6 +35,10 @@ Follow strictly — each meta-tool has purpose:
 Required args seen in schema: `recipient_email` (full user@domain string), at least one of `subject`/`body`, `is_html` only if HTML body. Optional `cc`, `bcc`, `extra_recipients`, `attachment`. Sends immediately (irreversible). Response: `{successful:true, data:{id, threadId, labelIds:["SENT"], display_url}}`; message link = `https://mail.google.com/mail/u/0/#inbox/<id>`.
 - Sent 2026-08-06 from account `nana.tutu.paa.kwesi26@gmail.com` (connection `gmail_jadish-naos`) to `bohene8@gmail.com` and `johnawotwi@gmail.com` — both `success_count:1, error_count:0`.
 
+### VERIFY the send landed (mandatory before claiming success)
+- Incident 2026-08-06: a completion email was claimed sent but never dispatched — the agent's turn was truncated before the `GMAIL_SEND_EMAIL` call executed. The send response (message id + `labelIds:["SENT"]`) is primary confirmation; for a *later* check use `GMAIL_LIST_THREADS` with `query: "in:sent to:<recipient>"` and match the newest thread's subject/snippet. Only then tell the user it's sent.
+- Gmail connection check: search response's `toolkit_connection_statuses` must show `has_active_connection: true` (sender `nana.tutu.paa.kwesi26@gmail.com`, connection `gmail_jadish-naos`).
+
 ## Execution-mode caveats
 - Interactive `hermes mcp add` password prompt is unreliable over non-TTY automation; pre-set env var and rerun.
 - After wiring, must `hermes gateway restart` (see SKILL.md detached-watcher pattern) + start a new session before `mcp_composio_*` tools appear.

@@ -1,0 +1,109 @@
+{
+  "jobs": [
+    {
+      "id": "b5d6a9874a5d",
+      "name": "FX Morning Briefing (07:00 Ghana/UTC)",
+      "prompt": "You are running the daily FX morning briefing for Tutu. It is 07:00 UTC (= 07:00 Ghana time, Ghana has no DST), just before the London open (~07:00 UTC) \u2014 the biggest volatility window of the day. The fx-trading skill is loaded \u2014 follow its analytical framework and Trading Mode attributes (probabilistic framing, risk-first, evidence over folklore).\n\nTASK \u2014 produce a structured, Telegram-friendly morning briefing:\n\n1. NEWS GATHERING (use web_search; if a page needs deeper reading, use terminal + curl to fetch it since web_extract may be search-only):\n   - Overnight Asia session: what moved (equities, USD/JPY, AUD/NZD, yen intervention chatter, geopolitical events).\n   - Central bank news: rate expectations, speeches, inflation data \u2014 Fed, ECB, BoE, BoJ, RBA, RBNZ, BoC, SNB.\n   - Commodities and risk sentiment: oil, gold, equities futures (risk-on/risk-off).\n   - Today's high-impact economic calendar for the London/NY sessions: CPI, NFP, rate decisions, PMI, retail sales \u2014 with times in UTC and consensus vs prior if available. Forex Factory / Investing.com / FXStreet are good sources.\n\n2. DIRECTIONAL BIAS for the major pairs: EUR/USD, GBP/USD, USD/JPY, USD/CHF, USD/CAD, AUD/USD, NZD/USD. For each: BULLISH / BEARISH / NEUTRAL bias, a 1-2 sentence rationale tied to the news you found (rate expectations, data surprises, risk sentiment, geopolitics), and the key level to watch if you can find one.\n\n3. RISK FRAMING: list the top 2-3 events today that could invalidate the biases (high-impact releases, speeches) and remind of the risk-management basics (size by risk, stop-first).\n\nRULES:\n- Bias is a probability, not a prediction. Phrase as \"evidence suggests\" / \"leaning\", never \"will go\".\n- Do NOT invent prices, consensus figures, or news. Only report what sources actually say; if a figure is uncertain, say so. If you cannot verify live prices, state that the report is news-driven bias, not a live quote feed.\n- Keep it compact: headers + bullets, no long prose. Telegram formatting (bold headers, bullets).\n- End with one line: which single pair has the clearest news-driven bias today and why.",
+      "skills": [
+        "fx-trading"
+      ],
+      "skill": "fx-trading",
+      "model": null,
+      "provider": null,
+      "provider_snapshot": "opencode-zen",
+      "model_snapshot": "deepseek-v4-flash-free",
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 7 * * *",
+        "display": "0 7 * * *"
+      },
+      "schedule_display": "0 7 * * *",
+      "repeat": {
+        "times": null,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-08-06T07:23:35.215750+00:00",
+      "next_run_at": "2026-08-07T07:00:00+00:00",
+      "last_run_at": "2026-08-06T07:42:19.774077+00:00",
+      "last_status": "ok",
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "origin",
+      "origin": {
+        "platform": "telegram",
+        "chat_id": "806045604",
+        "chat_name": "NaNa",
+        "thread_id": null,
+        "user_id": "806045604"
+      },
+      "enabled_toolsets": [
+        "web",
+        "terminal"
+      ],
+      "workdir": null,
+      "fire_claim": null
+    },
+    {
+      "id": "5a6c746a1662",
+      "name": "FX Evening Review (21:00 Ghana/UTC)",
+      "prompt": "You are running the daily FX evening review for Tutu. It is 21:00 UTC (= 21:00 Ghana time, Ghana has no DST), after the New York close. The fx-trading skill is loaded \u2014 follow its analytical framework and Trading Mode attributes (process over outcome, probabilistic framing, honest about base rates).\n\nYour context includes the most recent FX Morning Briefing output (the day's biases). Use it to score the day.\n\nTASK \u2014 produce a structured, Telegram-friendly evening review:\n\n1. DAY RECAP (use web_search; if a page needs deeper reading, use terminal + curl to fetch it since web_extract may be search-only):\n   - What actually moved the market today: major headlines, which economic releases were published, whether they beat/missed consensus, central bank commentary, risk sentiment shift.\n   - How the major pairs (EUR/USD, GBP/USD, USD/JPY, USD/CHF, USD/CAD, AUD/USD, NZD/USD) actually closed / ended the day, as reported by sources.\n\n2. SCORE THE MORNING BIAS: compare the morning briefing's directional bias for each pair against what actually happened. For each pair: matched / not matched / unclear, one line on why. This is the process review \u2014 grade the thesis, not the trader.\n\n3. TOMORROW PREVIEW: next high-impact events on the calendar (with UTC times), anything that might set the tone for tomorrow's session (central bank speeches, data, geopolitical).\n\n4. ONE TAKEAWAY: the single most important lesson or risk for tomorrow, phrased as process advice.\n\nRULES:\n- Do NOT invent prices, consensus figures, or news. Only report what sources actually say; if a figure is uncertain, say so. If you cannot verify live/close prices, state that the recap is headline-driven, not a verified price table.\n- Bias is a probability, never certainty \u2014 same phrasing discipline as the morning report.\n- Keep it compact: headers + bullets, no long prose. Telegram formatting (bold headers, bullets).\n- Do not fabricate the morning briefing's content if context is missing \u2014 if no context was provided, just say the day's recap and preview stand alone.",
+      "skills": [
+        "fx-trading"
+      ],
+      "skill": "fx-trading",
+      "model": null,
+      "provider": null,
+      "provider_snapshot": "opencode-zen",
+      "model_snapshot": "deepseek-v4-flash-free",
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": [
+        "b5d6a9874a5d"
+      ],
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 21 * * *",
+        "display": "0 21 * * *"
+      },
+      "schedule_display": "0 21 * * *",
+      "repeat": {
+        "times": null,
+        "completed": 1
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-08-06T07:23:43.657796+00:00",
+      "next_run_at": "2026-08-07T21:00:00+00:00",
+      "last_run_at": "2026-08-06T21:00:40.161005+00:00",
+      "last_status": "error",
+      "last_error": "RuntimeError: Connection error.",
+      "last_delivery_error": "delivery error: Telegram send failed: httpx.ConnectError: [Errno 11001] getaddrinfo failed",
+      "deliver": "origin",
+      "origin": {
+        "platform": "telegram",
+        "chat_id": "806045604",
+        "chat_name": "NaNa",
+        "thread_id": null,
+        "user_id": "806045604"
+      },
+      "enabled_toolsets": [
+        "web",
+        "terminal"
+      ],
+      "workdir": null,
+      "fire_claim": null
+    }
+  ],
+  "updated_at": "2026-08-06T21:00:40.162002+00:00"
+}

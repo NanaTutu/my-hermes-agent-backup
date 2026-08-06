@@ -35,6 +35,7 @@ Add remote MCP servers to Hermes so the **agent itself** calls external apps' to
 - **Interactive `hermes mcp add` prompts wedge over automation.** The `API key / Bearer token` prompt is `password=True` (no echo); piped stdin often never reaches it and the command hangs until timeout. Fix: pre-set the env var (step 3) and re-run — the prompt is skipped entirely.
 - **Secret hygiene:** config.yaml headers must use `${MCP_..._KEY}` interpolation; the real credential lives only in `.env`. Before any backup push, confirm no real key leaked into config: `grep -c "<key-prefix>" config.yaml` → 0.
 - **Windows schtasks needs single-slash flags** (`/Create`, `/Run`) — MSYS/git-bash `//Create` is an invalid-argument error.
+- **Verify external dispatches landed before confirming to the user.** A claimed "sent" can silently never happen: if the agent's response is truncated mid-turn, the tool call after the truncation point never executes. Confirm via `GMAIL_LIST_THREADS` with `query: "in:sent to:<recipient>"` (or the send response's `labelIds:["SENT"]`) before telling the user it's sent. User rule (2026-08-06): "Next time double check if it is sent."
 - Newly added MCP tools appear in a NEW session, not the current one.
 
 ## Restarting the gateway you're running inside (detached watcher)
