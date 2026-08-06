@@ -56,6 +56,30 @@ config.
 A Hermes shell hook fires on the `on_session_finalize` event (session close) to
 run this same script, so the backup stays current after each session.
 
+## Two-machine model (single writer)
+
+This repo is the **single writer / many readers** config pipeline for Tutu's two
+Hermes installs:
+
+- **Windows box = AUTHOR.** Builds/edits skills and SOUL here; the
+  `on_session_finalize` backup plugin (Hermes Backup Bot identity) is the *only*
+  thing that pushes new commits to this repo.
+- **Linux box = CONSUMER.** Mirrors this Windows config. It must **never push**
+  back (a second writer was what previously diverged the branch and rejected
+  pushes). Instead it deploys the portable snapshot with:
+
+```bash
+# inside the Linux clone (~/my-hermes-agent-backup), after cloning:
+./hermes_sync.sh
+```
+
+`hermes_sync.sh` git-pulls (ff-only) then copies the **portable** trees —
+`SOUL.md`, `skills/`, `memories/`, `cron/` — into `$HERMES_HOME`
+(`~/.hermes`). It deliberately does **not** touch machine-local files
+(`config.yaml`, `gateway_state.json`, `channel_directory.json`, the caches);
+those stay per-machine because they encode local paths, API identity, routing
+and process state that legitimately differ between boxes.
+
 ## Restore
 
 Check out `state/` from this repo and copy the files back into your
