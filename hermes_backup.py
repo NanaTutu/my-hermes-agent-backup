@@ -38,11 +38,22 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-HERMES_HOME = Path(
-    os.environ.get("HERMES_HOME")
-    or Path.home() / "AppData" / "Local" / "hermes"
+def _default_hermes_home() -> Path:
+    """Platform-appropriate Hermes home: AppData on Windows, ~/.hermes elsewhere."""
+    if os.name == "nt":
+        return Path.home() / "AppData" / "Local" / "hermes"
+    return Path.home() / ".hermes"
+
+
+HERMES_HOME = Path(os.environ.get("HERMES_HOME") or _default_hermes_home())
+MIRROR = Path(
+    os.environ.get("HERMES_BACKUP_MIRROR")
+    or (
+        Path.home() / "my-hermes-agent-backup"
+        if os.name != "nt"
+        else Path.home() / "hermes-backup"
+    )
 )
-MIRROR = Path(os.environ.get("HERMES_BACKUP_MIRROR") or Path.home() / "hermes-backup")
 REMOTE = os.environ.get(
     "HERMES_BACKUP_REMOTE",
     "https://github.com/NanaTutu/my-hermes-agent-backup.git",
@@ -184,10 +195,16 @@ def notify_telegram(message: str) -> None:
     never fatal to the backup — it is logged and ignored.
     """
     try:
+        # Windows: hermes.exe sits next to the venv python; Unix: `hermes` on
+        # PATH (or next to the interpreter). Resolve whichever exists.
         scripts_dir = Path(sys.executable).resolve().parent
         hermes = scripts_dir / "hermes.exe"
         if not hermes.exists():
-            log(f"warn: hermes.exe not found at {hermes}; skipping TG notify")
+            hermes = scripts_dir / "hermes"
+        if not hermes.exists():
+            hermes = shutil.which("hermes")
+        if not hermes:
+            log("warn: hermes executable not found; skipping TG notify")
             return
         r = subprocess.run(
             [str(hermes), "send", "--to", "telegram", message, "--quiet"],

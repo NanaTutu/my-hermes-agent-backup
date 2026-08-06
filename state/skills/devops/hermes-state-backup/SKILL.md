@@ -100,3 +100,27 @@ and PUSH FAILED (error snippet). Silent on no-op runs — no noise each session.
 Scripts dir; failure to notify never fails the backup (logged warn only).
 Test: `hermes_backup.py` after any real change should produce a TG message with
 `message_id` (verify with `hermes send --json`).
+
+## Linux / macOS adaptation (installed on Tutu's Linux box)
+
+The script + plugin are cross-platform as of the 2026-08-06 commit. Key deltas:
+
+- **HERMES_HOME default** is platform-aware in `hermes_backup.py`:
+  `~/.hermes` on Unix, `AppData/Local/hermes` on Windows. `MIRROR` default:
+  `~/my-hermes-agent-backup` on Unix (the cloned repo), `~/hermes-backup` on
+  Windows. Both still overridable via `HERMES_HOME` / `HERMES_BACKUP_MIRROR`.
+- **Plugin launch** (`~/.hermes/plugins/hermes-backup/__init__.py`) uses
+  `subprocess.Popen(..., start_new_session=True)` instead of Windows
+  DETACHED flags, and passes `env` with `HERMES_HOME` + `HERMES_BACKUP_MIRROR`
+  set explicitly. Logs to `<mirror>/backup.log` (gitignored via `*.log`).
+- **`notify_telegram`** resolves the hermes binary: `hermes.exe` next to
+  sys.executable (Win) → `hermes` next to it → `shutil.which("hermes")`
+  (Unix). The Unix launcher lives at `~/.local/bin/hermes`.
+- **GITHUB_TOKEN** must exist in `$HERMES_HOME/.env` — obtain with
+  `gh auth token` (never print it; append the line, chmod 600 .env).
+- **Hook validation**: `hermes chat --exit` DOES NOT EXIST. Use
+  `hermes chat -q "just say OK" -Q`; the plugin fires `on_session_finalize`
+  on exit and the detached script writes to `backup.log`.
+- Expect a one-time config.yaml normalization commit right after
+  `hermes plugins enable hermes-backup` (hermes rewrites config on next
+  load); subsequent runs are silent no-ops ("no changes since last push").
