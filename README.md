@@ -3,6 +3,15 @@
 Private backup of **Tutu's Hermes agent configuration state**, excluding all
 secrets and credentials.
 
+## Auto-trigger
+
+A user plugin at `C:\Users\bohen\AppData\Local\hermes\plugins\hermes-backup\`
+registers an `on_session_finalize` hook (fires on every Hermes session exit).
+It launches `hermes_backup.py` as a detached background process, logging to
+`backup.log` in this directory. Verify with:
+
+    hermes plugins list --user --plain
+
 ## What is backed up
 
 The `state/` directory mirrors a strict **whitelist** of re-creatable,
