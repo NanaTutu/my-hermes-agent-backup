@@ -1,6 +1,6 @@
 Telegram gateway active on Tutu's Hermes: platform creds are env-var driven via .env at C:\Users\bohen\AppData\Local\hermes; TELEGRAM_ALLOWED_USERS=806045604 and TELEGRAM_HOME_CHANNEL=806045604 (Tutu's Telegram user ID == DM chat id); edits take effect via `hermes gateway restart`; `hermes send --to telegram` reaches the DM and works without a running gateway.
 §
-GitHub state backup: Tutu wants significant Hermes state changes committed/pushed to backup repo + Telegram notify. Windows box: on-session-finalize 'hermes-backup' plugin -> C:\Users\bohen\hermes-backup\hermes_backup.py -> github.com/NanaTutu/my-hermes-agent-backup.git. Linux box: repo cloned at /home/tutu/my-hermes-agent-backup; restore = copy state/* into $HERMES_HOME (secrets excluded: .env/auth.json/state.db). gh CLI authed as NanaTutu (keyring).
+GitHub state backup: Tutu wants significant Hermes state changes committed/pushed to backup repo + Telegram notify. Windows box: on-session-finalize 'hermes-backup' plugin -> C:\Users\bohen\hermes-backup\hermes_backup.py -> github.com/NanaTutu/my-hermes-agent-backup.git. Linux box: repo cloned at /home/tutu/my-hermes-agent-backup; restore = copy state/* into $HERMES_HOME (secrets excluded: .env/auth.json/state.db); hermes-backup plugin ACTIVE there (on_session_finalize, GITHUB_TOKEN in .env, backup.log in mirror). gh CLI authed as NanaTutu (keyring).
 §
 TTS works on Tutu's Telegram setup: edge provider (default) delivers playable voice bubbles. Tested and confirmed working.
 §
