@@ -30,11 +30,19 @@ audio_cache/
 __pycache__/
 *.pyc
 
-# local source tree is not part of the backup
-hermes-agent/
-node/
-bin/
-venv/
+# skill manager internal files (backup of our own skills / usage tracking)
+.curator_backups/
+.curator_archives/
+.curator_state
+.usage.json
+.bundled_manifest
+
+# local source tree is not part of the backup (anchor to repo root so
+# nested dirs named the same (e.g. skills/.../hermes-agent) are NOT ignored)
+/hermes-agent/
+/node/
+/bin/
+/venv/
 
 # macOS/Windows noise
 .DS_Store

@@ -70,9 +70,9 @@ WHITELIST = [
 FORBIDDEN_SUFFIXES = {".db", ".db-shm", ".db-wal", ".lock", ".log", ".lck",
                       ".key", ".pem", ".crt", ".p12", ".pfx", ".tmp"}
 FORBIDDEN_DIR_NAMES = {".env", "venv", "node_modules", "__pycache__", "bin",
-                       "models", "skills/.curator_backups"}
+                       "models", ".curator_backups", ".git", ".curator_archives"}
 FORBIDDEN_FILE_NAMES = {".env", "auth.json", "auth.lock",
-                        "skills/.usage.json"}
+                        ".usage.json", ".curator_state", ".bundled_manifest"}
 FORBIDDEN_FULL = {"skills/.curator_backups", "skills/.usage.json"}
 
 # ---------------------------------------------------------------------------
