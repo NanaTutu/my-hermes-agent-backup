@@ -9,3 +9,7 @@ Hermes aux vision: auxiliary.vision.provider=opencode-zen, model=mimo-v2.5-free 
 cua-driver 0.18: fresh som-capture token needed per click/type; Chrome text_input needs foreground delivery (background dropped for Chrome_WidgetWin_1). Stale sessions error 'this session has ended' — kill cua-driver.exe / new capture respawns. Video in Chrome tab doesn't steal focus.
 §
 Composio in Hermes via MCP: mcp_servers.composio = https://connect.composio.dev/mcp, header Authorization: Bearer ${MCP_COMPOSIO_API_KEY} (both Bearer & x-consumer-api-key accepted; key in .env). 7 meta-tools prefixed mcp_composio_* (SEARCH_TOOLS, MULTI_EXECUTE_TOOL, MANAGE_CONNECTIONS...). Gmail connected; GitHub deferred. MCP tools need gateway restart + new session to load.
+§
+Tutu wants FX trading competency in Hermes: fx-trading skill lives at skills/trading/fx-trading/ + SOUL 'Trading Mode' section; trading mentorship is a recurring topic.
+§
+Double-check email dispatches actually landed (Gmail Sent folder) before confirming — one send was silently lost mid-turn.
