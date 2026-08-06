@@ -280,10 +280,14 @@ def main() -> int:
     desired = set(dest_base / f.relative_to(HERMES_HOME) for f in srcs)
     for existing in is_files(dest_base):
         rel = existing.relative_to(dest_base)
-        # only touch files that correspond to whitelist layout
+        # prune forbidden files even if their source still exists (e.g. files
+        # mirrored before the forbid list was tightened)
+        if is_forbidden(rel):
+            existing.unlink(missing_ok=True)
+            removed_manifest.append(existing)
+            continue
+        # prune for real only when its source no longer exists
         if existing not in desired:
-            # maybe it's still part of a whitelisted parent (e.g. skills) but just stale
-            # -> prune for real only when its source no longer exists
             src = HERMES_HOME / rel
             if not src.exists():
                 existing.unlink(missing_ok=True)
