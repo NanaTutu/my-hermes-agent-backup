@@ -6,7 +6,7 @@ TTS works on Tutu's Telegram setup: edge provider (default) delivers playable vo
 §
 Hermes aux vision: opencode-zen/mimo-v2.5-free (free vision model; gemini-3-flash paid; codex/copilot reject images).
 §
-cua-driver 0.18: fresh som-token per click/type; Chrome text_input needs foreground (bg drops for Chrome_WidgetWin_1); stale 'session has ended' → kill cua-driver.exe/recapture. On web broker term (Exness): click by element-index not raw coords (raw coords mis-scale ~1.6x); set SL+TP before clicking Buy/Sell and verify echoed pips/USD; pair pid+window_id.
+cua-driver 0.18: stale 'session has ended' -> kill cua-driver.exe + recapture; if STILL wedged on every call, drive CLI direct (`cua-driver call start_session`+`get_window_state`, needs window_id; decode embedded screenshot_png_b64 for canvas UIs like Exness, AX tree ~no text; recipe in windows-desktop-automation skill). Exness term: click element-index, SL+TP before Buy/Sell.
 §
 Composio in Hermes via MCP: mcp_servers.composio endpoint + Authorization: Bearer ${MCP_COMPOSIO_API_KEY}; tools prefixed mcp_composio_*; need gateway restart + new session to load.
 §

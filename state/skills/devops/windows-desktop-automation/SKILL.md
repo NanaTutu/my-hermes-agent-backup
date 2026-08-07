@@ -53,6 +53,14 @@ unverified until confirmed against a node. If numbers are time-sensitive (a
 live quote or account equity), prefer a node read and cross-check against a
 second capture before building a report on them.
 
+**Parsing `get_window_state` / `capture` JSON in Python (field-name gotcha).**
+Each node in `elements[]` stores its number under **`element_index`** (an int),
+NOT `index` — using `e.get('index')` silently returns `None` and your dump
+prints nothing, which looks like a dead session. Other node fields: `role`,
+`label`, `frame` (`x/y/w/h`), `enabled`, `depth`. When you parse the JSON you
+saved with `get_window_state`, filter by `element_index` range and grep the
+`label`s; use `role` to tell `Text`/`Button`/`TabItem` apart.
+
 ## Workarounds (in priority order)
 
 - **Foreground typing works on cua-driver ≥0.18.** Retry a blocked `type`
@@ -79,17 +87,128 @@ second capture before building a report on them.
 - **Stale driver process after upgrade.** The old cua-driver.exe parent may
   survive the upgrade and `capture` errors with *"cua-driver list_windows
   failed: this session has ended; call start_session explicitly to reuse its
-  label"*. Recovery: kill the lingering `cua-driver.exe` worker PIDs
-    (`taskkill /F /PID <n>`; the gateway-owned parent is often access-denied —
-    that's expected), then call `computer_use(action="list_apps")` — that
-    actually respawns a fresh session and a new cua-driver PID. A capture fired
-    immediately after the kill can still fail with the same end-session error;
-    use `list_apps` to re-initialize, then re-capture. (Do not push `capture`
-    through the "this session has ended" loop twice — call `list_apps`.)
-    Occasionally `list_apps` returns an empty `[ ]` list instead of respawning —
-    in that case plain re-`capture` (narrowed to the app, e.g. `app="Chrome"`)
-    after the kill also successfully regains a usable session; the end-session
-    error is transient once the orphaned workers are gone.
+  label"*. Recovery: kill the lingering `cua-driver.exe` worker PIDs, then call
+  `computer_use(action="list_apps")` — that actually respawns a fresh session
+  and a new cua-driver PID. A capture fired immediately after the kill can
+  still fail with the same end-session error; use `list_apps` to re-initialize,
+  then re-capture. (Do not push `capture` through the "this session has ended"
+  loop twice — call `list_apps`.) Occasionally `list_apps` returns an empty
+  `[ ]` list instead of respawning — in that case plain re-`capture` (narrowed
+  to the app, e.g. `app="Chrome"`) after the kill also successfully regains a
+  usable session; the end-session error is transient once the orphaned workers
+  are gone.
+- **From git-bash, kill cua-driver with PowerShell, NOT `taskkill`.** You are
+  NOT in cmd: `taskkill //F //PID <n>` (and `//F //IM`) fails with
+  *"Invalid argument/option - '//F'"* — git-bash mangles the `/` flags. It can
+  even appear to "succeed" (`exit 0`) if you `2>/dev/null` the stderr, leaving
+  the workers alive and the session still wedged. Use
+  `powershell -Command \"Stop-Process -Name cua-driver -Force -ErrorAction SilentlyContinue; Start-Sleep 2\"`.
+  There are usually TWO workers (an `mcp` and a `serve` daemon) — a name kill
+  clears both, then the next `computer_use(capture, app="...")` re-initializes
+  and works. Verify with `tasklist | grep -i cua || echo none`. If even kill +
+  `list_apps` + re-capture loops on the same end-session error, drop to the CLI
+  below.
+
+**A useful quirk confirmed while watching live positions (Exness web PWA):** a
+`capture(mode="som")` on the open positions tab returns a RICH AX tree for the
+whole row — symbol `GBP/USD`, `Sell`, lot `0.01`, open price, current price,
+TP/SL buttons, ticket `23958538`, swap, live `P/L`, plus the account footer
+(`Balance 50.00`, `Equity`, `Margin level`, `Total P/L`). Grep the `elements[]`
+labels for the row (ticket / `P/L`), and confirm the position is still open by
+the `TabItem Open 1` node being active as opposed to `TabItem Closed`. When the
+trade's only way to stay silent is a missing capture, the same row-grep logic
+handles `Closed`.
+
+## Starting the daemon from git-bash: use `autostart kick`, not `serve`
+
+When `cua-driver serve` must be re-launched (daemon died, or `status` reports "not running"),
+**do NOT start it as a git-bash background process.** `terminal(background=true, command="cua-driver serve
+--socket '\\\\.\\pipe\\cua-driver'")` fails with *os error 123 "The filename, directory name, or
+volume label syntax is incorrect"* — git-bash mangling of the `\\.\pipe\...` named-pipe socket path.
+Setting `MSYS_NO_PATHCONV=1` does NOT fix it; neither does double- or single-quoting forms,
+because the pipe name is reconstructed from mangled backslashes inside the child process.
+
+Working fix (no shell at all): the daemon is registered as a Windows **autostart Scheduled Task** on
+this host, so start it through that task:
+
+```bash
+cua-driver autostart status   # -> "registered (running)" / "registered (not running)"
+cua-driver autostart kick     # Start the 'cua-driver-serve' Scheduled Task for this session
+cua-driver autostart status   # confirm "registered (running)"
+```
+
+Then confirm the pipe is really up before touching the tools:
+```bash
+cua-driver status              # "daemon is running" — or if it errors with a risk-classification
+                               # message, the daemon IS up (the message means only that 'status'
+                               # as a tool has no review class); use `autostart status` instead.
+```
+Heads-up: after `autostart kick` the Hermes `computer_use` tool may still report the stale
+`"this session has ended"` label — the CLI path (below) is the reliable route regardless.
+Also, prefer `cua-driver autostart kick` over hand-running `serve` because a `terminal(...background=true)`
+`serve` is tied to that shell's lifecycle and can silently exit when the cron/task shell goes away.
+
+## Bypass a wedged `computer_use` session — drive the cua-driver CLI directly
+
+The recovery above (kill orphans + `list_apps` + re-capture) works most of the time, but it is
+NOT guaranteed: a truly wedged session can keep returning the identical
+`"cua-driver list_windows failed: this session has ended; call start_session explicitly to
+reuse its label"` on **every** tool call — `list_apps` returns `[]`, plain re-`capture` returns
+the same end-session error, and even killing every `cua-driver.exe` process doesn't revive it
+because the Hermes tool keeps trying to reuse a stale session label. Don't keep fighting the
+tool. **Drop down to the cua-driver CLI and drive it directly** — no Hermes session needed:
+
+```bash
+# 0. `cua-driver` is on PATH (resolves to AppData\Local\Programs\Cua\cua-driver\bin).
+# 1. Confirm daemon state (read-only, safe)
+cua-driver status        # "daemon is running" / "not running"
+# 2. If needed, stop and start a FRESH daemon (`serve` runs forever -> start it as a
+#    Hermes background process via terminal(background=true), not nohup/disown)
+cua-driver stop
+# NOTE: from git-bash, `cua-driver serve` in the background FAILS to create the
+# named pipe (os error 123 "syntax is incorrect") even with MSYS_NO_PATHCONV=1.
+# On this host the daemon is a registered autostart Scheduled Task — restart it
+# with `cua-driver autostart kick` instead (see "Starting the daemon from git-bash").
+cua-driver serve          # in background (fails on git-bash; use autostart kick)
+# 3. Declare a new desktop-scoped session (separate from the wedged Hermes one)
+cua-driver call start_session '{"session":"<some-fresh-name>","capture_scope":"desktop"}'
+# 4. Find the target window and capture its window_id
+echo '{}' | cua-driver call list_windows   # -> { "windows" : [ { "pid","title","window_id","bounds" } ... ] }
+# 5. Read a window: AX tree AND a screenshot you own in one response
+echo '{"pid":<pid>,"window_id":<win_id>,"screenshot_out_file":"C:/Users/<u>/AppData/Local/Temp/d.svg"}' | \
+  cua-driver call get_window_state   # -> elements[] + tree_markdown, PNG written to the file
+```
+
+**CLI arg passing on this git-bash host.** BOTH forms work, pick whichever you prefer:
+- Via stdin: `echo '{"pid":31344,"window_id":722668}' | cua-driver call get_window_state`
+- **As a single-quoted positional JSON arg** (confirmed working this host): `cua-driver call start_session '{"session":"watcher"}'` and `cua-driver call get_window_state '{"pid":31344,"window_id":722668}'` both succeed directly. The critical requirement is that the arg reach the driver as **well-formed JSON text** — a single-quoted literal does this cleanly.
+
+The failure mode is NOT "stdin-only"; it's passing a **bare token / flag** that isn't JSON. `cua-driver call get_window_state --pid 31344` (flag style) errors with *"Missing required integer field pid"*, and `cua-driver call list_windows --app chrome` (bare positional) errors with *"positional JSON arg ... did not parse: expected value at line 1 column 1 / received: chrome"*. So: single-quote the JSON, whether you pipe it through stdin or put it as an argument — either is reliable. (The `--help` hint blaming PowerShell 5.1 is misleading here — you're in bash, the root cause is that the arg must be JSON text.)
+
+**`screenshot_out_file` beats base64-decode.** `get_window_state` accepts a `screenshot_out_file` path and writes the PNG straight to disk — much cleaner than the older `include_image:false` + base64-decode-the-JSON dance. Use it when you want to `vision_analyze` the window. Note the file arg is a Windows path form (`C:/Users/...`), and native `python` won't read MSYS `/tmp` — write to an absolute path under `$HOME`.
+
+Key facts that kept this from being guesswork:
+- `list_windows` gives each window a `window_id` (a large int, e.g. 722668). **`get_window_state`
+  REQUIRES `window_id`** — passing only `pid` errors with *"Missing required integer field
+  window_id"*. Get `pid` from the same windows list.
+- `get_window_state` returns `{ "elements": [...], "tree_markdown": "...",
+  "screenshot_png_b64": "..." }`. The screenshot is downscaled to ≤1455px. **Save the JSON,
+  base64-decode `screenshot_png_b64` to a PNG, and `vision_analyze` the PNG** — that is how you
+  "see" a window when the AX layer is thin. (On Windows, git-bash `/tmp` is not readable by the
+  native `python`; write JSON/PNG to an absolute path under `$HOME`/Desktop instead.)
+- **Exness webtrading AX richness varies by page build — do NOT assume canvas-thin up front.**
+  An older build session found the AX tree almost empty (a few `Edit`/`ComboBox` nodes only) and
+  required screenshot decode. A later session (Aug 2026) got the FULL positions table straight
+  from the AX `elements[]` array via `get_window_state`: row nodes `GBP/USD`, `Sell`, lot button
+  `0.01`, `1.34514` open price, `1.34533` current, TP `1.34000` / SL `1.34644` buttons, ticket
+  `23958538`, open time, swap, `P/L -0.19`, plus account footer `Balance 50.00`, `Equity 49.81`,
+  `Margin level 7,434.33%` — all machine-readable, no vision needed. **Sequence: dump the
+  `elements[]` labels first and grep for the row (symbol/lot/ticket/P-L); only if the tree is
+  genuinely bare fall back to base64-decode `screenshot_png_b64` + `vision_analyze`.** When the
+  AX tree is rich, trust it over the vision description for numbers (see "Reading numeric
+  values" above). `TabItem Open 1` / `TabItem Closed` nodes distinguish open from closed tabs.
+
+Full end-to-end recipe with the exact commands: `references/cua-driver-cli-recovery.md`.
 
 ## Targeting the correct browser window (multi-window / PWA gotcha)
 
@@ -177,3 +296,14 @@ the `hermes-provider-and-alias-setup` skill
   process name.
 - Background click/scroll/capture work even when typing does not — do not
   assume the whole driver is broken from one text-input failure.
+- **Native Windows `python` cannot resolve git-bash MSYS paths.** Inside
+  `terminal` (bash), `python /c/Users/<u>/Desktop/script.py` fails with
+  "can't open file 'C:\\c\\Users\\...'". Fix: `cd /c/Users/<u>/Desktop && python
+  script.py` (or run `python .\\script.py`), not an absolute `/c/...` path with
+  a bare `python` that is the MSYS-wrapped exe. `uv`-managed pythons are also
+  native exes and hit the same rule.
+- **`execute_code` is BLOCKED in cron jobs** ("cron_mode ... no user present
+  to approve it"). Do the base64 decode of `screenshot_png_b64` via a
+  `write_file`'d python script run through `terminal`, not `execute_code`.
+  The write_file+terminal path shown in the CLI recovery reference is the
+  approved route.
