@@ -4,12 +4,14 @@ GitHub Hermes config backup = SINGLE-WRITER: the box = AUTHOR, only writer (herm
 §
 TTS works on Tutu's Telegram setup: edge provider (default) delivers playable voice bubbles. Tested and confirmed working.
 §
-Hermes aux vision: auxiliary.vision.provider=opencode-zen, model=mimo-v2.5-free (only free vision-capable model on Tutu's key; gemini-3-flash is PAID; codex OAuth & GITHUB_TOKEN copilot routes reject images).
+Hermes aux vision: opencode-zen/mimo-v2.5-free (free vision model; gemini-3-flash paid; codex/copilot reject images).
 §
-cua-driver 0.18: fresh som-capture token needed per click/type; Chrome text_input needs foreground delivery (background dropped for Chrome_WidgetWin_1). Stale sessions error 'this session has ended' — kill cua-driver.exe / new capture respawns. Video in Chrome tab doesn't steal focus.
+cua-driver 0.18: fresh som-token per click/type; Chrome text_input needs foreground (bg drops for Chrome_WidgetWin_1); stale 'session has ended' → kill cua-driver.exe/recapture. On web broker term (Exness): click by element-index not raw coords (raw coords mis-scale ~1.6x); set SL+TP before clicking Buy/Sell and verify echoed pips/USD; pair pid+window_id.
 §
-Composio in Hermes via MCP: mcp_servers.composio = https://connect.composio.dev/mcp, header Authorization: Bearer ${MCP_COMPOSIO_API_KEY} (both Bearer & x-consumer-api-key accepted; key in .env). 7 meta-tools prefixed mcp_composio_* (SEARCH_TOOLS, MULTI_EXECUTE_TOOL, MANAGE_CONNECTIONS...). Gmail connected; GitHub deferred. MCP tools need gateway restart + new session to load.
+Composio in Hermes via MCP: mcp_servers.composio endpoint + Authorization: Bearer ${MCP_COMPOSIO_API_KEY}; tools prefixed mcp_composio_*; need gateway restart + new session to load.
 §
 Tutu wants FX trading competency in Hermes: fx-trading skill lives at skills/trading/fx-trading/ + SOUL 'Trading Mode' section; trading mentorship is a recurring topic.
 §
 Double-check email dispatches actually landed (Gmail Sent folder) before confirming — one send was silently lost mid-turn.
+§
+CV/PDF ATS-safety audit via PyMuPDF: flag fonts outside ATS-safe set, body<10pt, name>20pt, margins<0.5in, images/tables; margins from span bboxes. Windows lacks pip -> use `uv venv` + `uv pip install --python ./.cvvenv/Scripts/python.exe pymupdf`.

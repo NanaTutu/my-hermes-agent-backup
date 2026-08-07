@@ -38,6 +38,21 @@ prefer foreground delivery for text input.
    foreground error, upgrade the driver — do not conclude typing is
    impossible.**
 
+## Reading numeric values: trust the AX tree, not the vision description
+
+A `capture(mode="som")` returns BOTH an AX `elements[]` array and a
+`vision_analysis` natural-language description. For any number you must act on
+(precise prices, balances, margins, P/L, lot sizes, timestamps), READ IT FROM
+THE `elements[]` ARRAY (a `Text`/`Edit`/`Button` node label), NEVER from
+`vision_analysis`. The auxiliary vision model summarises loosely and has been
+observed to fabricate digits — on a dense Exness webtrading page it reported
+`Balance: 58.08`, `Margin: 8.66`, `Margin level: ~7408.77%` while the AX nodes
+held the true `Balance 50.00`, `Margin 0.67`, `Margin level 7450.75%`. The
+vision text is a descriptive summary for orientation; treat figures in it as
+unverified until confirmed against a node. If numbers are time-sensitive (a
+live quote or account equity), prefer a node read and cross-check against a
+second capture before building a report on them.
+
 ## Workarounds (in priority order)
 
 - **Foreground typing works on cua-driver ≥0.18.** Retry a blocked `type`
@@ -65,12 +80,48 @@ prefer foreground delivery for text input.
   survive the upgrade and `capture` errors with *"cua-driver list_windows
   failed: this session has ended; call start_session explicitly to reuse its
   label"*. Recovery: kill the lingering `cua-driver.exe` worker PIDs
-  (`taskkill /F /PID <n>`; the gateway-owned parent is often access-denied —
-  that's expected), then call `computer_use(action="list_apps")` — that
-  actually respawns a fresh session and a new cua-driver PID. A capture fired
-  immediately after the kill can still fail with the same end-session error;
-  use `list_apps` to re-initialize, then re-capture. (Do not push `capture`
-  through the "this session has ended" loop twice — call `list_apps`.)
+    (`taskkill /F /PID <n>`; the gateway-owned parent is often access-denied —
+    that's expected), then call `computer_use(action="list_apps")` — that
+    actually respawns a fresh session and a new cua-driver PID. A capture fired
+    immediately after the kill can still fail with the same end-session error;
+    use `list_apps` to re-initialize, then re-capture. (Do not push `capture`
+    through the "this session has ended" loop twice — call `list_apps`.)
+    Occasionally `list_apps` returns an empty `[ ]` list instead of respawning —
+    in that case plain re-`capture` (narrowed to the app, e.g. `app="Chrome"`)
+    after the kill also successfully regains a usable session; the end-session
+    error is transient once the orphaned workers are gone.
+
+## Targeting the correct browser window (multi-window / PWA gotcha)
+
+`capture(app="chrome.exe")` does NOT always give you the window you want. This
+host runs many Chrome windows/tabs (Composio, Google Drive, Exness PWA, etc.);
+a bare `app="Chrome"` capture grabbed a random existing tab (e.g. Composio)
+while the Exness web-trading PWA sat in its own window. `app="Exness"` also
+fails to match even though the Taskbar shows "Exness - 1 running window",
+because the PWA is a `chrome_proxy.exe --app-id=...` window, not a process the
+driver resolves by display name.
+
+**Reliable recipe — find the window by its title, then capture by handle:**
+1. Enumerate Chrome windows and match the one whose title identifies it:
+   ```powershell
+   Get-Process chrome -ErrorAction SilentlyContinue |
+     Where-Object { $_.MainWindowTitle -ne '' } |
+     Select-Object Id,ProcessName,MainWindowTitle,MainWindowHandle
+   ```
+   (On this git-bash host run it as `powershell -NoProfile -Command "..."`.)
+   The Exness PWA window shows up with a live title like
+   `GBP/USD Bid 1.34521 - Google Chrome` → note its `Id` (PID) and
+   `MainWindowHandle`.
+2. Capture that exact window with the computer_use tool, passing both:
+   `app="chrome.exe"`, `pid=<Id>`, `window_id=<MainWindowHandle>`,
+   `mode="som"`.
+3. Then drive it normally (element-index clicks, not raw coords — coords
+   mis-scale on this driver).
+
+Apply the same pattern to any Chromium/Electron PWA that "runs" but refuses to
+resolve by `app=` name. Verify which window you actually got by checking the
+capture's `Document` title / first elements (a window whose address bar shows a
+different site means you captured the wrong tab).
 
 ## Screen capture to a deliverable PNG
 
@@ -98,8 +149,11 @@ escaping is also fragile; the file approach sidesteps all of it.
 
 `capture(mode="vision")` gives a natural-language page description via the
 configured auxiliary vision provider (`vision_analysis_routed_via:
-auxiliary.vision`) — use it first; it is more informative than the AX tree.
-If it fails, or no vision LLM is configured (`auxiliary.vision` → "Run:
+auxiliary.vision`) — use it first; it is more informative than the AX tree for
+**qualitative** page understanding. Caveat: this description must NOT be used
+for precise numbers — see the "Reading numeric values" section above (the AX
+`elements[]` array is authoritative for figures). If vision fails, or no
+vision LLM is configured (`auxiliary.vision` → "Run:
 hermes setup"), fall back to `capture(mode="ax")`, which returns the full
 accessibility/DOM tree as element labels; describe the page from those. Watch
 the element cap: dense pages (e.g. YouTube homepage around 430-460 elements)
