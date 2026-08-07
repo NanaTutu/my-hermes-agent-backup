@@ -33,7 +33,9 @@ S='C:\Users\bohen\AppData\Local\hermes\scripts\tcl_tv.py'
 "$P" "$S" volume-down        # -5%
 "$P" "$S" mute               # toggle
 "$P" "$S" cast https://...   # cast a video URL
-"$P" "$S" app netflix        # launch a Cast app (youtube/netflix/prime/spotify/twitch/disneyplus)
+"$P" "$S" app netflix        # NOTE: this Cast launch command is broken (launch_app missing in this pychromecast); use ADB instead:
+"$A" -s $H shell am start -n com.netflix.ninja/.MainActivity   # verified launch (package is com.netflix.ninja, NOT com.netflix.ninja.tv)
+"$A" -s $H shell monkey -p com.netflix.ninja -c android.intent.category.LAUNCHER 1   # alternative; returns 252 if package missing
 "$P" "$S" pause | play | stop
 "$P" "$S" switch-hdmi 2      # switch TV input to HDMI 2 (ADB; works from any state)
 ```

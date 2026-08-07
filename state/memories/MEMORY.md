@@ -4,7 +4,7 @@ GitHub Hermes config backup = SINGLE-WRITER: the box = AUTHOR, only writer (herm
 §
 Hermes aux vision: opencode-zen/mimo-v2.5-free (free vision model; gemini-3-flash paid; codex/copilot reject images).
 §
-cua-driver 0.18: stale 'session has ended' -> drive CLI direct (start_session+get_window_state). Exness demo ~$50 (verify footer; user may misstate). SL/TP: set_value on Edit (click field first); fresh Confirm token.
+Exness demo ~$50 (verify footer; user may misstate). Church rig: Behringer WING fullsize (FW 3.1, "Potters-Arena"), skill behringer-mixer-scenes validated against real CHURCH.snap.
 §
 Tutu wants FX trading competency in Hermes: fx-trading skill lives at skills/trading/fx-trading/ + SOUL 'Trading Mode' section; trading mentorship is a recurring topic.
 §
