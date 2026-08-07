@@ -128,15 +128,15 @@
       "schedule_display": "every 7m",
       "repeat": {
         "times": null,
-        "completed": 15
+        "completed": 17
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T22:19:14.462629+00:00",
-      "next_run_at": "2026-08-07T00:54:01.521629+00:00",
-      "last_run_at": "2026-08-07T00:47:01.521629+00:00",
+      "next_run_at": "2026-08-07T01:19:20.394371+00:00",
+      "last_run_at": "2026-08-07T01:12:20.394371+00:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -184,7 +184,50 @@
       "origin": null,
       "enabled_toolsets": null,
       "workdir": null
+    },
+    {
+      "id": "84c08fe54e8d",
+      "name": "kanban self-pull",
+      "prompt": "You are Hermes working the shared kanban board at C:\\Users\\bohen\\kanban (CLI: python \"C:\\Users\\bohen\\kanban\\kb.py\").\n\nTask: check the board, and if there is a claimable task, work it.\n\nSteps:\n1. Run: python \"C:\\Users\\bohen\\kanban\\kb.py\" next\n2. If it prints \"Nothing claimable\", reply with exactly: \"Kanban: nothing to do. Board is clean.\" and STOP.\n3. Otherwise it prints \"NEXT: [id] ...\". Claim it: python \"C:\\Users\\bohen\\kanban\\kb.py\" claim <id>\n4. Show the task detail: python \"C:\\Users\\bohen\\kanban\\kb.py\" show <id>\n5. Execute the task properly using your tools (terminal, file, web as needed). Do real work \u2014 read files, run commands, verify results. Never fabricate outcomes.\n6. When finished, mark it done with a summary note: python \"C:\\Users\\bohen\\kanban\\kb.py\" move <id> done --note \"<what was done, 1-2 sentences>\"\n7. Reply with a concise report: task id, title, what you did, verification evidence (real command output / file paths), and anything that remains for Tutu.\n\nGuardrails (non-negotiable):\n- NEVER claim a task that is not tagged @hermes or assigned to hermes \u2014 kb next only returns such tasks, so rely on it.\n- If a task is blocked or ambiguous, do NOT guess: leave it, mark nothing, and report back what is missing.\n- If you cannot complete a task in this run (too long, needs user input), move it back to backlog or leave in_progress, and report exactly where you stopped.\n- Time anchor: run time is UTC (Ghana has no DST).\n- Be honest about what you did and did not accomplish. Do not invent data, file contents, or test results \u2014 report only what you actually observed.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": "opencode-zen",
+      "model_snapshot": "deepseek-v4-flash-free",
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": null,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 9 * * *",
+        "display": "0 9 * * *"
+      },
+      "schedule_display": "0 9 * * *",
+      "repeat": {
+        "times": null,
+        "completed": 0
+      },
+      "enabled": false,
+      "state": "paused",
+      "paused_at": "2026-08-07T00:54:15.149527+00:00",
+      "paused_reason": null,
+      "created_at": "2026-08-07T00:54:11.170971+00:00",
+      "next_run_at": "2026-08-07T09:00:00+00:00",
+      "last_run_at": null,
+      "last_status": null,
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "telegram:806045604",
+      "origin": null,
+      "enabled_toolsets": [
+        "terminal",
+        "file",
+        "web"
+      ],
+      "workdir": null
     }
   ],
-  "updated_at": "2026-08-07T00:47:01.522628+00:00"
+  "updated_at": "2026-08-07T01:12:20.395372+00:00"
 }

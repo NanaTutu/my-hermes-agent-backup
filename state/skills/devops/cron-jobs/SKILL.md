@@ -29,6 +29,9 @@ description: Use when creating, chaining, or managing cron jobs.
 - UTC is the scheduling reference; when the user's local time matters, state it in the prompt (Ghana = UTC, no DST).
 - Include in autonomous research prompts: "do not invent data — report only what sources say; flag unverifiable figures" (prevents fabricated news/prices).
 - Verify a job is live before claiming it: `cronjob list` → check `next_run_at` and `state: scheduled`.
+- **CLI sessions have no live delivery channel.** A job created from the CLI with `deliver='origin'` (or default) only SAVES output locally (viewable via `cronjob list`) — it will NOT message the user in the terminal. To actually notify, target a gateway-connected platform: `deliver='telegram:<chat_id>'` or `'all'`. Don't promise the user a default-deliver CLI job will reach them.
+- **Agent-execution jobs (the cron prompt makes the agent DO work, not just report) should be created PAUSED**: `create` then immediately `pause`, and have the user explicitly enable it. An unattended job that takes side-effecting actions (claiming tasks, running commands, posting to channels) needs deliberate opt-in and an agreed cadence.
+- **For "pick up and work" jobs, encode claim guardrails in the prompt**: only touch items explicitly opened to the agent (e.g. tasks tagged `@hermes`), never guess on ambiguous/blocked items — leave them and report — and require the report to state what was and wasn't accomplished. Example live instance: the `kanban self-pull` job (see the `kanban` skill).
 
 ## References
 - `references/fx-daily-briefing.md` — live instance: the daily FX briefing/review pair (job IDs, chaining, UTC anchors, output contract).
