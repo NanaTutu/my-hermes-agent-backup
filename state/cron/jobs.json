@@ -24,15 +24,15 @@
       "schedule_display": "0 7 * * *",
       "repeat": {
         "times": null,
-        "completed": 1
+        "completed": 2
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T07:23:35.215750+00:00",
-      "next_run_at": "2026-08-07T07:00:00+00:00",
-      "last_run_at": "2026-08-06T07:42:19.774077+00:00",
+      "next_run_at": "2026-08-08T07:00:00+00:00",
+      "last_run_at": "2026-08-07T07:11:56.493172+00:00",
       "last_status": "ok",
       "last_error": null,
       "last_delivery_error": null,
@@ -84,7 +84,7 @@
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T07:23:43.657796+00:00",
-      "next_run_at": "2026-08-07T21:00:00+00:00",
+      "next_run_at": "2026-08-08T21:00:00+00:00",
       "last_run_at": "2026-08-06T21:00:40.161005+00:00",
       "last_status": "error",
       "last_error": "RuntimeError: Connection error.",
@@ -101,48 +101,6 @@
         "web",
         "terminal"
       ],
-      "workdir": null,
-      "fire_claim": null
-    },
-    {
-      "id": "b54d2fdaff34",
-      "name": "Exness trade watcher \u2014 GBP/USD short #23958538",
-      "prompt": "You are a trade-status watcher for a real live position on Tutu's Exness DEMO web terminal (Chrome, open window). Your job is SILENT MONITORING: check the position, and only ever deliver a substantive message when the position has CLOSED or your check otherwise fails. Tutu is just watching; do not nag with per-tick status. Keep every report tight and disciplined, in the risk-first trading voice.\n\nTHE POSITION BEING TRACKED (ticket #23958538):\n- Instrument: GBP/USD \u2014 SELL, 0.01 lots (Standard account)\n- Entry: 1.34514, opened Aug 6, 2026 22:14 UTC\n- Take Profit: 1.34000 (~+51 pips, ~+5.10 USD, ~+10% if hit)\n- Stop Loss: 1.34644 (~-13 pips, ~-1.35 USD, ~-2.7% if hit)\n- Rationale (for your review context): mean-reversion short fading the 1.3450-1.3470 multi-layered resistance after a failed 1.3500 break, daily RSI overbought, NY-session tail. R:R ~3.9:1. Risk-first: stop and size were set before entry; never criticize a trade that followed its own rules even if it lost.\n\nHOW TO CHECK (use the computer_use tool):\n1. Capture the Exness browser window (Chrome is the app; if the window list shows multiple Chrome windows, pick the one whose tab title starts with \"GBP/USD Bid ...\" or \"Exness\"). Use action='capture' mode='som' with app narrowing to Chrome.\n2. Read the \"Open\" positions table at the bottom of the platform. The position row you are tracking is the GBP/USD row with ticket ~8491 in column \"Position#\".\n3. Determine state:\n   - If under \"Open\" there is still the GBP/USD Sell 0.01 row -> the trade is STILL OPEN. In that case output NOTHING/STANDBY and do NOT report holdings.\n   - If that GBPUSD row is GONE from \"Open\", find it under the \"Closed\" tab. Note the close price, the realized P/L (USD), and whether TP or SL was hit (compare the close price against entry 1.08514, TP 1.34000, SL 1.34644).\n4. IMPORTANT execution notes for computer_use on this setup (learned quirks): coordinate clicks mis-scale ~1.5-1.76x on this driver, so prefer element-index clicks read from the SOT capture, not raw pixel coordinates; Chrome text inputs sometimes need delivery_mode='foreground'. If a capture comes back empty or 'session has ended', kill and restart cua-driver as needed and recapture the window.\n\nWHAT TO OUTPUT (only when the trade has CLOSED):\n- Outcome: what happened (TP hit / SL hit / manually closed \u2014 infer from close price and realized P/L).\n- Numbers: entry, exit, pips gained/lost, USD P/L, % of the 50.00 balance.\n- R multiple: raw deviation / expected risk (~$1.35 at 0.01 lot & 13-pt stop).\n- A 3-4 line review: did the process hold? (stop set first, sized to risk, R:R ~3.9:1 was correct for a fade). Honest, probabilistic tone: 'a losing trade that followed the rules is still a good trade.' Frame the result without overselling.\n- Reinforce the base-rate honestly (most retail accounts lose; this is a demo for process).\n- If after a check you cannot find the position AND cannot confirm it closed (e.g. platform logged out, window gone, capture fail), output a brief note that the watcher lost sight of the position and ask Tutu to confirm the outcome manually.\n\nNEVER output a full report while the trade is still open. No price predictions, ever \u2014 actual state only.",
-      "skills": [
-        "fx-trading"
-      ],
-      "skill": "fx-trading",
-      "model": null,
-      "provider": null,
-      "provider_snapshot": "opencode-zen",
-      "model_snapshot": "deepseek-v4-flash-free",
-      "base_url": null,
-      "script": null,
-      "no_agent": false,
-      "context_from": null,
-      "schedule": {
-        "kind": "interval",
-        "minutes": 7,
-        "display": "every 7m"
-      },
-      "schedule_display": "every 7m",
-      "repeat": {
-        "times": null,
-        "completed": 46
-      },
-      "enabled": true,
-      "state": "scheduled",
-      "paused_at": null,
-      "paused_reason": null,
-      "created_at": "2026-08-06T22:19:14.462629+00:00",
-      "next_run_at": "2026-08-07T06:58:36.444887+00:00",
-      "last_run_at": "2026-08-07T06:43:38.891108+00:00",
-      "last_status": "ok",
-      "last_error": null,
-      "last_delivery_error": null,
-      "deliver": "telegram",
-      "origin": null,
-      "enabled_toolsets": null,
       "workdir": null,
       "fire_claim": null
     },
@@ -229,5 +187,5 @@
       "workdir": null
     }
   ],
-  "updated_at": "2026-08-07T06:51:36.445986+00:00"
+  "updated_at": "2026-08-07T21:00:10.892751+00:00"
 }

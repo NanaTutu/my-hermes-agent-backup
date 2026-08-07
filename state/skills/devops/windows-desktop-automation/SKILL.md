@@ -97,6 +97,18 @@ saved with `get_window_state`, filter by `element_index` range and grep the
   to the app, e.g. `app="Chrome"`) after the kill also successfully regains a
   usable session; the end-session error is transient once the orphaned workers
   are gone.
+- **Health-check BEFORE you kill (Aug 2026 watch).** The wedge is not always a
+  dead driver. Run `cua-driver autostart status` / `cua-driver status` FIRST: if
+  the daemon reports running, it is HEALTHY — the stale `session has ended`
+  label is only in the Hermes tool's session bookkeeping, and
+  `Stop-Process -Name cua-driver` may refuse to kill the autostart daemon (it is
+  the real, needed daemon). A kill refused by name AND by PID with the PID
+  unchanged is the signal to STOP trying — that PID is the live daemon, not an
+  orphan. Skip the kill entirely and go straight to the CLI path below:
+  `cua-driver call start_session` with a FRESH session name, then drive
+  `list_windows` / `get_window_state` / `click` directly. In the Aug 2026 watch,
+  kill attempts failed against the live daemon yet the fresh CLI session worked
+  immediately — the kill was never needed.
 - **From git-bash, kill cua-driver with PowerShell, NOT `taskkill`.** You are
   NOT in cmd: `taskkill //F //PID <n>` (and `//F //IM`) fails with
   *"Invalid argument/option - '//F'"* — git-bash mangles the `/` flags. It can
@@ -170,8 +182,12 @@ cua-driver stop
 # On this host the daemon is a registered autostart Scheduled Task — restart it
 # with `cua-driver autostart kick` instead (see "Starting the daemon from git-bash").
 cua-driver serve          # in background (fails on git-bash; use autostart kick)
-# 3. Declare a new desktop-scoped session (separate from the wedged Hermes one)
-cua-driver call start_session '{"session":"<some-fresh-name>","capture_scope":"desktop"}'
+# 3. Declare a new session (separate from the wedged Hermes one).
+#    capture_scope:"window" (or omit -> default "auto", also window-only) suffices for
+#    read-only monitoring: list_windows + get_window_state + AX-row grep + background
+#    TabItem clicks all work in window scope. "desktop" is ONLY needed to escalate to
+#    raw-coordinate / whole-desktop gestures — don't reach for it to just read a position.
+cua-driver call start_session '{"session":"<some-fresh-name>","capture_scope":"window"}'
 # 4. Find the target window and capture its window_id
 echo '{}' | cua-driver call list_windows   # -> { "windows" : [ { "pid","title","window_id","bounds" } ... ] }
 # 5. Read a window: AX tree AND a screenshot you own in one response
@@ -205,10 +221,27 @@ Key facts that kept this from being guesswork:
   `Margin level 7,434.33%` — all machine-readable, no vision needed. **Sequence: dump the
   `elements[]` labels first and grep for the row (symbol/lot/ticket/P-L); only if the tree is
   genuinely bare fall back to base64-decode `screenshot_png_b64` + `vision_analyze`.** When the
-  AX tree is rich, trust it over the vision description for numbers (see "Reading numeric
-  values" above). `TabItem Open 1` / `TabItem Closed` nodes distinguish open from closed tabs.
+  AX tree is rich, trust it over the vision description for numbers (see "Reading numeric values" above). `TabItem Open 1` / `TabItem Closed` nodes distinguish open from closed tabs.
+  **Empirically it FLIP-FLOPS between sessions for the same terminal** — an Aug 2026 watch had the full
+  open-position row machine-readable in `elements[]`; a later watch returned a THIN tree (only the live
+  price `Text` nodes and `TabItem`/`Document` chrome; no positions row at all), so the numeric fallback
+  to base64-decode-`screenshot_png_b64` + `vision_analyze` was required. Expect either shape and always
+  grep `elements[]` first before assuming the tree is bare. When only vision is available, vision is
+  RELIABLE for the binary open/closed verdict (it correctly reported the trade still under the "Open 1"
+  tab) but UNRELIABLE for precise figures — it misread the account balance (58.08 vs true ~50) and the
+  live quote. For a silent live-position watch, the binary verdict is all you need to decide stand-by;
+  only surface exact numbers when the AX tree (or a confirm re-check) backs them.
 
 Full end-to-end recipe with the exact commands: `references/cua-driver-cli-recovery.md`.
+
+Silent live-position watch on the Exness web terminal (find the trading tab via
+AX TabItem, activate with element_token click, grep the Open/Closed row,
+decide stand-by vs. report): `references/exness-tab-watch-recipe.md`.
+
+PLACING an order on the Exness web terminal (open SELL/BUY ticket via pixel-click
+on the TradingView button, fill protective legs with focus-then-set_value,
+re-resolve the stale confirm token, verify the fill via toast + Open-count):
+`references/exness-order-entry.md`.
 
 ## Targeting the correct browser window (multi-window / PWA gotcha)
 
@@ -242,6 +275,39 @@ resolve by `app=` name. Verify which window you actually got by checking the
 capture's `Document` title / first elements (a window whose address bar shows a
 different site means you captured the wrong tab).
 
+**Variant (Aug 2026): the terminal may be a TAB inside another Chrome window,
+not a standalone PWA.** A `cua-driver call list_windows` showed only YouTube /
+Composio / Exness Personal Area top-level windows — no `GBP/USD` window at all.
+The trading terminal lived as a `TabItem` (label `GBP/USD Bid 1.34538 - High
+memory usage - 1.0 GB`) INSIDE the main Chrome window's AX tree. Recipe:
+  1. `get_window_state` each candidate Chrome window (pid + window_id from
+     `list_windows`); grep element labels (role `TabItem`) for `GBP/USD Bid`.
+  2. Activate it with a background UIA click on its `element_token`:
+     `cua-driver call click '{"pid":<pid>,"window_id":<win_id>,"element_token":"<token>","delivery_mode":"background"}'`.
+     The result reports `effect: unverifiable` — that is NORMAL, not failure.
+  3. Re-run `get_window_state`; the terminal DOM (positions table + account
+     footer) now appears in the AX tree, and the `Document` label is the live
+     quote (e.g. `GBP/USD Bid 1.34544`). Verify the tab became active before
+     reading the row.
+  The tab title carries a live quote (it updates with the market, and may show
+  a `High memory usage` suffix) — cheap live-price source even before viewing
+  the positions table.
+
+**Don't key window selection on the tracked-pair name in the title (Aug 2026
+watch).** The Exness terminal's window/tab title shows the **currently-active
+CHART tab's symbol**, which is NOT necessarily the pair of the position you are
+monitoring. In a live watch tracking GBP/USD (ticket 23958538), `list_windows`
+returned the terminal window titled `USD/JPY Bid 158.324 - Google Chrome` — the
+chart had been switched to a USD/JPY tab while the GBP/USD SELL 0.01 row still
+sat in the positions table under `TabItem "Open 2"`. The AX `elements[]` had
+BOTH the USD/JPY SELL row AND the tracked GBP/USD row (open 1.34514 / current
+1.34443 / TP 1.34000 / SL 1.34644 / ticket 23958538). Lesson: identify the
+terminal by ANY Chrome window whose title matches the broker/quote pattern
+(`<Pair> Bid <price> - Google Chrome`), then read the position by **grep of
+the AX `elements[]` for the ticket/symbol** — never assume the tracked pair's
+name appears in the title, and never conclude the trade is gone from a title
+change alone. The positions table + `TabItem Open/Closed` is ground truth.
+
 ## Screen capture to a deliverable PNG
 
 `computer_use(action="capture")` returns image bytes in-context, which is fine
@@ -263,6 +329,13 @@ git-bash `-Command` string — bash treats `[` as an escape, so
 errors. **Rule: write the PowerShell to a `.ps1` file (with `write_file`) and
 run it with `-File`, never inline it in a `-Command` string.** Inline quote
 escaping is also fragile; the file approach sidesteps all of it.
+Also: **bash control operators do not survive inside `powershell -Command
+"..."`** — `...; tasklist | grep -i cua || echo none` fails with *"The token
+'||' is not a valid statement separator in this version"*. Keep ONLY
+PowerShell-legal separators (`;`) inside the quoted string and move bash
+operators (`|`, `||`, `&&`) OUTSIDE the quotes into their own `terminal()`
+call, e.g. `powershell -NoProfile -Command "Stop-Process ...; Start-Sleep 2"`
+then a separate `tasklist | grep -i cua || echo none`.
 
 ## Reading a page: prefer vision, fall back to AX tree
 
