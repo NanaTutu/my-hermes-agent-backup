@@ -1,4 +1,4 @@
-Telegram gateway active on Tutu's Hermes: platform creds are env-var driven via .env at C:\Users\bohen\AppData\Local\hermes; TELEGRAM_ALLOWED_USERS=806045604 and TELEGRAM_HOME_CHANNEL=806045604 (Tutu's Telegram user ID == DM chat id); edits take effect via `hermes gateway restart`; `hermes send --to telegram` reaches the DM and works without a running gateway.
+Telegram gateway creds in .env at C:\Users\bohen\AppData\Local\hermes; TELEGRAM_ALLOWED_USERS=806045604, TELEGRAM_HOME_CHANNEL=806045604 (user ID==DM chat); restart via `hermes gateway restart`; `hermes send --to telegram` works without a live gateway.
 §
 GitHub Hermes config backup = SINGLE-WRITER: the box = AUTHOR, only writer (hermes_backup.py auto-push; repo github.com/NaTutu/my-hermes-agent-backup.git; model in repo README). Linux box = CONSUMER: git pull then ./hermes_sync.sh copies only portable trees (SOUL, skills, memories, cron) to ~/.hermes; NEVER push back. config.yaml/gateway_state.json/channel_directory.json/caches stay machine-local; on merge conflicts keep THIS machine's values. Recent divergence fix.
 §
@@ -15,3 +15,5 @@ CV/PDF ATS-safety audit via PyMuPDF: flag fonts outside ATS-safe set, body<10pt,
 TCL TV (tutu @172.20.10.3): volume ONLY via Cast (ADB keyevents don't move output volume; use `status`+`volume 0..1`, read back to confirm). Cast=castenv\tcl_tv.py @8009; ADB=adb.exe -s 172.20.10.3:5555 remote/screencap; skill tcl-tv-cast-control.
 §
 Composio via MCP: mcp_servers.composio + Bearer ${MCP_COMPOSIO_API_KEY}; mcp_composio_*; gateway restart + new session.
+§
+Home machine internet = Tutu's phone hotspot; when he leaves, machine goes offline. api.telegram.org 'DNS failure' spikes = hotspot drops, NOT resolver bugs. Gateway self-heals ~5min after network returns. Fibre broadband planned.

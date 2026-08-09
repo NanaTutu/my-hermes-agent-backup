@@ -59,6 +59,41 @@ this governs platform connectivity.
   retry window; any `conflict` line means the restart failed and only a
   fresh bot token fixes it.
 
+## Common failure: transient DNS / connect errors (getaddrinfo / All connection attempts failed)
+
+- Signature: `[Errno 11001] getaddrinfo failed` on api.telegram.org, then
+  fallback IPs 149.154.166.110 / 149.154.167.220 also fail with
+  `All connection attempts failed`; `Reconnect telegram failed, next retry in
+  300s`; after ~10 network-error retries:
+  `Telegram polling could not reconnect after 10 network error retries.
+  Escalating to gateway recovery.` then `No connected messaging platforms
+  remain, but 1 platform(s) queued for reconnection — gateway staying alive,
+  watcher will retry in background.`
+- Meaning: the BOX lost DNS/route to Telegram — NOT a token conflict (see
+  polling_conflict above) and not Telegram-side. Common on Windows with
+  ISP/VPN resolvers that drop lookups intermittently.
+- Diagnosis: 1) `gateway_state.json` → `state: retrying`,
+  `error_code: telegram_connect_error`; 2) live-probe the network at check time
+  (`nslookup api.telegram.org`; `curl -o /dev/null -w "%{http_code}"
+  https://api.telegram.org` — HTTP 302 on a bare GET = reachable).
+  Healthy at check time ≠ healthy at failure time; datestamp the outage window
+  from the log, don't assume from the present.
+- Escalation ladder: short blips (minutes) self-heal via the 300s watcher;
+  long outages only recover when the network returns — the gateway will NOT
+  self-restart into a working state mid-DNS-outage, and neither will a manual
+  `hermes gateway restart` (environmental fault, not gateway fault).
+  Fix the resolver (static 8.8.8.8/1.1.1.1) or the VPN/proxy.
+- Stale-state pitfall: `gateway_state.json` lags the log — it can read
+  `retrying` minutes after a successful reconnect. Confirm with the log line
+  `✓ telegram reconnected successfully` and `updated_at`; re-read the file.
+- Recurrence signal: the SAME DNS signature N days in a row, escalating in
+  duration, means an environment problem to fix, not a gateway problem.
+  Full timeline, transcript markers, and verification steps: see
+  `references/dns-connect-outage.md` (2026-08 series, incl. the ~17.5h case).
+- Side effect to check: any cron job with `deliver` to Telegram that fired
+  during the outage window will show `last_delivery_error` (getaddrinfo
+  failed) in `cronjob list` — reschedule/rerun it after recovery if needed.
+
 ## Scrap & rebuild from scratch (workflow)
 
 1. Back up `.env`: `cp .env .env.bak.$(date +%Y%m%d_%H%M%S)`.
@@ -108,3 +143,7 @@ this governs platform connectivity.
 
 - `references/telegram.md` — Telegram-specific env vars, adapter behavior,
   and the exact diagnosis transcript from the 2026-08 case.
+- `references/dns-connect-outage.md` — 2026-08 DNS/connect outage series on
+  Tutu's box (3 events, ~17.5h worst case): timestamps, log signature,
+  adapter behaviors (DoH fallback discovery, 300s watcher), verified
+  diagnosis steps, and the static-DNS recommendation.

@@ -24,18 +24,18 @@
       "schedule_display": "0 7 * * *",
       "repeat": {
         "times": null,
-        "completed": 2
+        "completed": 4
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T07:23:35.215750+00:00",
-      "next_run_at": "2026-08-08T07:00:00+00:00",
-      "last_run_at": "2026-08-07T07:11:56.493172+00:00",
-      "last_status": "ok",
-      "last_error": null,
-      "last_delivery_error": null,
+      "next_run_at": "2026-08-10T07:00:00+00:00",
+      "last_run_at": "2026-08-09T07:00:31.253562+00:00",
+      "last_status": "error",
+      "last_error": "RuntimeError: Connection error.",
+      "last_delivery_error": "delivery error: Telegram send failed: httpx.ConnectError: [Errno 11001] getaddrinfo failed",
       "deliver": "origin",
       "origin": {
         "platform": "telegram",
@@ -77,18 +77,18 @@
       "schedule_display": "0 21 * * *",
       "repeat": {
         "times": null,
-        "completed": 2
+        "completed": 4
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T07:23:43.657796+00:00",
-      "next_run_at": "2026-08-08T21:00:00+00:00",
-      "last_run_at": "2026-08-07T21:27:35.268606+00:00",
-      "last_status": "ok",
-      "last_error": null,
-      "last_delivery_error": null,
+      "next_run_at": "2026-08-10T21:00:00+00:00",
+      "last_run_at": "2026-08-09T21:00:49.326423+00:00",
+      "last_status": "error",
+      "last_error": "RuntimeError: Connection error.",
+      "last_delivery_error": "delivery error: Telegram send failed: httpx.ConnectError: [Errno 11001] getaddrinfo failed",
       "deliver": "origin",
       "origin": {
         "platform": "telegram",
@@ -126,22 +126,23 @@
       "schedule_display": "0 3 * * 0",
       "repeat": {
         "times": null,
-        "completed": 0
+        "completed": 1
       },
       "enabled": true,
       "state": "scheduled",
       "paused_at": null,
       "paused_reason": null,
       "created_at": "2026-08-06T23:33:41.171481+00:00",
-      "next_run_at": "2026-08-09T03:00:00+00:00",
-      "last_run_at": null,
-      "last_status": null,
-      "last_error": null,
+      "next_run_at": "2026-08-16T03:00:00+00:00",
+      "last_run_at": "2026-08-09T03:00:59.346749+00:00",
+      "last_status": "error",
+      "last_error": "Cannot run .sh/.bash script 'cache_cleanup.sh': bash not found on PATH. On Windows, install Git for Windows (which ships Git Bash) or rewrite the script as Python (.py).",
       "last_delivery_error": null,
       "deliver": "local",
       "origin": null,
       "enabled_toolsets": null,
-      "workdir": null
+      "workdir": null,
+      "fire_claim": null
     },
     {
       "id": "84c08fe54e8d",
@@ -185,7 +186,48 @@
         "web"
       ],
       "workdir": null
+    },
+    {
+      "id": "318097b1f25b",
+      "name": "LTE router task reminder",
+      "prompt": "It is 09:00 UTC on August 31, 2026 \u2014 the end-of-month reminder date Tutu set for purchasing and setting up his 4G LTE router.\n\nContext: Tutu's home machine (where Hermes lives) has internet only via his phone hotspot. When he leaves the house, the machine goes fully offline. MTN fibre and Telecel fibre/Vodafone fibre do NOT reach his area, so he chose a dedicated 4G LTE router as the solution. He owns this task \u2014 it is assigned to tutu, not to hermes (Hermes cannot buy hardware).\n\nSteps:\n1. Read the checklist file C:/Users/bohen/kanban/notes/lte-router-plan.md if readable.\n2. Send a Telegram reminder message to Tutu that is concise, friendly, and actionable. Include:\n   - Task: buy + set up the 4G LTE router (Huawei B535-class, ~GHS 400-900)\n   - Plan: MTN home broadband or big one-time bundle, target under GHS 500/month\n   - The checklist path so he can work through it\n   - A concrete first action (e.g. \"buy the router this week\", \"check MTN home broadband tiers\")\n3. Do NOT claim or modify the kanban board task. Do NOT attempt to buy anything. This is a nudge only.\n\nIf the file cannot be read, still send the reminder with the essentials above.",
+      "skills": [],
+      "skill": null,
+      "model": null,
+      "provider": null,
+      "provider_snapshot": "opencode-zen",
+      "model_snapshot": "deepseek-v4-flash-free",
+      "base_url": null,
+      "script": null,
+      "no_agent": false,
+      "context_from": null,
+      "schedule": {
+        "kind": "once",
+        "run_at": "2026-08-31T09:00:00+00:00",
+        "display": "once at 2026-08-31 09:00"
+      },
+      "schedule_display": "once at 2026-08-31 09:00",
+      "repeat": {
+        "times": 1,
+        "completed": 0
+      },
+      "enabled": true,
+      "state": "scheduled",
+      "paused_at": null,
+      "paused_reason": null,
+      "created_at": "2026-08-09T22:46:21.801338+00:00",
+      "next_run_at": "2026-08-31T09:00:00+00:00",
+      "last_run_at": null,
+      "last_status": null,
+      "last_error": null,
+      "last_delivery_error": null,
+      "deliver": "telegram:806045604",
+      "origin": null,
+      "enabled_toolsets": [
+        "file"
+      ],
+      "workdir": null
     }
   ],
-  "updated_at": "2026-08-07T21:27:35.278237+00:00"
+  "updated_at": "2026-08-09T22:46:21.833111+00:00"
 }
