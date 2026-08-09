@@ -10,10 +10,12 @@ Tutu wants FX trading competency in Hermes: fx-trading skill lives at skills/tra
 §
 Double-check email dispatches actually landed (Gmail Sent folder) before confirming — one send was silently lost mid-turn.
 §
-CV/PDF ATS-safety audit via PyMuPDF: flag fonts outside ATS-safe set, body<10pt, name>20pt, margins<0.5in, images/tables; margins from span bboxes. Windows lacks pip -> use `uv venv` + `uv pip install --python ./.cvvenv/Scripts/python.exe pymupdf`.
+CV/PDF ATS audit via PyMuPDF in ./.cvvenv (uv; Windows no pip): flag fonts outside ATS-safe, body<10pt, name>20pt, margins<0.5in (span bboxes).
 §
 TCL TV (tutu @172.20.10.3): volume ONLY via Cast (ADB keyevents don't move output volume; use `status`+`volume 0..1`, read back to confirm). Cast=castenv\tcl_tv.py @8009; ADB=adb.exe -s 172.20.10.3:5555 remote/screencap; skill tcl-tv-cast-control.
 §
 Composio via MCP: mcp_servers.composio + Bearer ${MCP_COMPOSIO_API_KEY}; mcp_composio_*; gateway restart + new session.
 §
 Home machine internet = Tutu's phone hotspot; when he leaves, machine goes offline. api.telegram.org 'DNS failure' spikes = hotspot drops, NOT resolver bugs. Gateway self-heals ~5min after network returns. Fibre broadband planned.
+§
+Jarvis voice-loop at C:\Users\bohen\jarvis (skill voice-assistant-loop; real mic = Realtek Array dev 5).
