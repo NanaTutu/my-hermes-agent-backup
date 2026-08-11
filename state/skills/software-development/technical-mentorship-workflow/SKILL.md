@@ -44,6 +44,19 @@ For technical or research problems:
 
 Do not over-plan trivial tasks. For simple questions, answer directly and concisely.
 
+### Comprehensive Codebase Analysis for Tutu
+
+When Tutu asks for a broad codebase analysis/report, combine inspection, verification, and mentoring rather than only summarizing files:
+
+1. Start with repository facts: git status/branch/remote/recent commits, top-level structure, package/build files, README/docs, and major source directories.
+2. Gather lightweight metrics while excluding dependency/build folders (`.git`, `node_modules`, `.gradle`, `build`, `dist`, virtualenvs, caches). Report file counts, line counts by language/extension, and unusually large files.
+3. Read representative architecture files: entrypoints, manifests, schemas/models, service/repository layers, API clients, sync/background workers, config, and docs.
+4. Run safe verification checks where practical: type checks, builds, dependency audits, tests, health endpoints, or smoke calls. If a required toolchain is missing, report it as a verification blocker instead of guessing.
+5. Explicitly distinguish what is implemented from what is only documented or aspirational.
+6. Rank risks by severity and explain why they matter long-term: security, data loss, API contract mismatch, missing tests, maintainability, deployment readiness, and privacy.
+7. End with a practical roadmap, not only criticism.
+8. If dependency installation or inspection modifies generated files such as lockfiles, check `git status` and restore incidental changes unless Tutu asked to update dependencies.
+
 ## Coding Standards for Tutu
 
 When writing or modifying code:

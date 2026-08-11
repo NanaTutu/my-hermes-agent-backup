@@ -56,10 +56,11 @@ parameter tree (`ae_data`).
 
 ## Tool: `scripts/wing_osc.py`
 
-Full CLI (stdlib-only raw OSC — no dependency). Run selftest after any edit:
-`wingay/python wing_osc.py selftest` — it byte-compares encoder output
-against known-good OSC hex (`/?` = `2f3f00002c000000`, /ch/2/fdr float =
-`…2c660000c0000000`), so the wire format can never silently rot.
+Full CLI (stdlib-only raw OSC — no dependency). Run selftest after any
+edit: `python scripts/wing_osc.py selftest` (from this skill's root) — it
+byte-compares encoder output against known-good OSC hex (`/?` =
+`2f3f00002c000000`, /ch/2/fdr float = `…2c660000c0000000`), so the wire
+format can never silently rot.
 
 ## Pitfalls
 

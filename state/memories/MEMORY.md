@@ -1,6 +1,6 @@
-Telegram gateway creds in .env at C:\Users\bohen\AppData\Local\hermes; TELEGRAM_ALLOWED_USERS=806045604, TELEGRAM_HOME_CHANNEL=806045604 (user ID==DM chat); restart via `hermes gateway restart`; `hermes send --to telegram` works without a live gateway.
+Telegram creds in .env at C:\Users\bohen\AppData\Local\hermes; allowed user 806045604 (DM); restart via `hermes gateway restart`; `hermes send --to telegram` works even with gateway down.
 §
-GitHub Hermes config backup = SINGLE-WRITER: the box = AUTHOR, only writer (hermes_backup.py auto-push; repo github.com/NaTutu/my-hermes-agent-backup.git; model in repo README). Linux box = CONSUMER: git pull then ./hermes_sync.sh copies only portable trees (SOUL, skills, memories, cron) to ~/.hermes; NEVER push back. config.yaml/gateway_state.json/channel_directory.json/caches stay machine-local; on merge conflicts keep THIS machine's values. Recent divergence fix.
+GitHub backup SINGLE-WRITER: box = AUTHOR only (hermes_backup.py; repo github.com/NaTutu/my-hermes-agent-backup.git). Linux box CONSUMER: git pull + hermes_sync.sh copies portable trees; NEVER push. config/gateway_state/channel_directory/caches local; on conflicts keep THIS machine's values.
 §
 Hermes aux vision: opencode-zen/mimo-v2.5-free (free vision model; gemini-3-flash paid; codex/copilot reject images).
 §
@@ -12,10 +12,14 @@ Double-check email dispatches actually landed (Gmail Sent folder) before confirm
 §
 CV/PDF ATS audit via PyMuPDF in ./.cvvenv (uv; Windows no pip): flag fonts outside ATS-safe, body<10pt, name>20pt, margins<0.5in (span bboxes).
 §
-TCL TV (tutu @172.20.10.3): volume ONLY via Cast (ADB keyevents don't move output volume; use `status`+`volume 0..1`, read back to confirm). Cast=castenv\tcl_tv.py @8009; ADB=adb.exe -s 172.20.10.3:5555 remote/screencap; skill tcl-tv-cast-control.
+TCL TV 172.20.10.3: volume ONLY via Cast (ADB keys don't move it); full details in skill tcl-tv-cast-control.
 §
 Composio via MCP: mcp_servers.composio + Bearer ${MCP_COMPOSIO_API_KEY}; mcp_composio_*; gateway restart + new session.
 §
-Home machine internet = Tutu's phone hotspot; when he leaves, machine goes offline. api.telegram.org 'DNS failure' spikes = hotspot drops, NOT resolver bugs. Gateway self-heals ~5min after network returns. Fibre broadband planned.
+Home internet = Tutu's phone hotspot; box offline when he leaves; api.telegram.org DNS spikes = hotspot drops, NOT resolver bugs; gateway self-heals ~5min after return; fibre planned.
 §
-Jarvis voice-loop at C:\Users\bohen\jarvis (skill voice-assistant-loop; real mic = Realtek Array dev 5).
+Jarvis voice-loop C:\Users\bohen\jarvis (skill voice-assistant-loop). Real mic = Realtek Array resolved BY NAME in jarvis.py (MME IDs drift; was dev 5, now dev 1 after Iriun renumber). Run .\run.cmd --cli, no --mic. run.cmd clears PYTHONPATH (hermes session leaks its venv site-packages ahead of jarvis venv).
+§
+User runs terminal commands himself in PowerShell; reports via terminal screenshots.
+§
+Kotlin/Android dev + GhaLingo (C:\Users\bohen\Documents\Hermes\GhaLingo): load kotlin-mobile-development (state in refs/ghalingo.md).
