@@ -1,4 +1,4 @@
-Hermes setup: default model is deepseek-v4-flash-free/opencode-zen; `/model chatgpt` switches to openai-codex/gpt-5.5 via OAuth.
+Hermes setup: default model is deepseek-v4-pro/opencode-go; `/model chatgpt` switches to openai-codex/gpt-5.5 via OAuth.
 §
 User's name is Benjamin Ohene-Affih; they prefer to be called Tutu.
 §
