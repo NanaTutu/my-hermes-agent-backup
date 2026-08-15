@@ -354,6 +354,41 @@ content. To FIX a missing vision backend instead of working around it, see
 the `hermes-provider-and-alias-setup` skill
 (`references/auxiliary-vision-config.md`).
 
+## Native Qt / custom-rendered apps (CapCut & co.): UIA unresponsive → pixel path
+
+Heavy native editors built on Qt (window class `Qt622QWindowIcon`) publish an
+UNRESPONSIVE UIA provider. `computer_use(capture, app=...)` dies with
+`get_window_state timed out after 4s (UIA provider unresponsive on hwnd ...,
+class 'Qt...')` — no SOM overlay, no element indices, no way to click by
+element. The entire element path is unusable for such apps; drive them on the
+pixel ladder instead:
+
+1. **See the window without UIA.** Full-screen PowerShell capture, then
+   `vision_analyze` the PNG:
+   `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/screen_capture.ps1 shot.png`
+   (works even when cua-driver cannot read the window state at all).
+2. **Drive the full loop in pure Win32 — no cua-driver needed.** The proven
+   sequence (all `scripts/` helpers, run with `-File`): `qt_raise.ps1` lift the
+   window out from under a cluttered desktop (SetForegroundWindow + Alt-key
+   foreground-lock release) → `screen_capture.ps1` → `qt_crop.ps1` crop the PNG
+   to the window rect (vision hallucinates window positions on a busy
+   full-screen capture) → `vision_analyze` the crop for the button's in-image
+   coords → screen = rect origin + in-image coord → `qt_click.ps1 -X -Y`
+   (SetCursorPos + `mouse_event` LEFTDOWN/LEFTUP; moves the real cursor) →
+   re-crop to verify. This is the ONLY reliable path for Qt apps and it keeps
+   working when the cua-driver session is dead. Rect fetch via Win32
+   `GetWindowRect` + a CapCut worked example: `references/qt-native-app-pixel-path.md`.
+   Use `qt_enum.ps1` to see which windows cover your target before clicking.
+
+**Launch GUI apps through the shell, not a direct bash spawn.** `./App.exe`
+from git-bash can crash during GPU init and leave only helper processes alive
+(observed: CapCut exits on "FAILED to load EGL library" on an Intel-UHD-only
+host; its crash-detector `VEDetector.exe` survives and masks the crash — the
+main process is gone). Launch via `explorer.exe "C:\path\App.exe"` so the app
+inherits the normal desktop/shell environment, then confirm with
+`tasklist | grep -i <name>` — look for the main process holding hundreds of MB
+(and multiple children), not just the helper.
+
 ## Verification
 
 - `ls -la` the saved PNG and confirm it is `PNG image data, <W>x<H>` — catches

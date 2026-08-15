@@ -30,9 +30,31 @@ Add remote MCP servers to Hermes so the **agent itself** calls external apps' to
 5. **Verify:** `hermes mcp list` shows `✓ enabled`; grep config.yaml to confirm the header is the `${MCP_..._KEY}` placeholder, never the real key.
 6. **Restart the gateway** — MCP tools load only at agent startup (CLI prints "Start a new session to use these tools" otherwise).
 
+## Stdio (local command) servers
+
+For a LOCAL MCP server (a script that speaks MCP over stdin/stdout — e.g.
+Python `mcp` SDK, `npx`, or a self-contained script), skip `--url`/`--auth` and
+use `--command` + `--args`:
+
+```
+hermes mcp add <name> --command "<abs path to interpreter>" --args "<abs path to script>"
+```
+
+- Use ABSOLUTE paths for both — Hermes launches the process from its own cwd,
+  not the server's directory.
+- If the script self-locates its imports
+  (`sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))`), no
+  `--env PYTHONPATH` and no cwd are needed.
+- The post-connect prompt "Enable all N tools? [Y/n/select]" wedges on
+  non-interactive stdin (same class as the password prompt below). Pipe the
+  answer: `printf 'Y\n' | hermes mcp add ...`.
+- Verify with `hermes mcp list` (shows `✓ enabled` + tool count). Tools load
+  in a NEW session, not the current one.
+
 ## Pitfalls
 - **Never `hermes gateway restart` from inside the gateway.** It is blocked ("cannot restart or stop the gateway from inside the gateway process") — correct, it would SIGTERM itself. Use the detached watcher pattern below.
 - **Interactive `hermes mcp add` prompts wedge over automation.** The `API key / Bearer token` prompt is `password=True` (no echo); piped stdin often never reaches it and the command hangs until timeout. Fix: pre-set the env var (step 3) and re-run — the prompt is skipped entirely.
+- **No-auth servers: answer `n` then `Y`.** For a remote MCP server that needs NO client auth (e.g. a self-host-mode server that holds its own API key and needs no header from the client), `hermes mcp add <name> --url <url>` first asks "Does this server require authentication? [Y/n]" — answer **`n`**. Answering `Y` routes into the hidden `password=True` prompt and wedges. It then asks "Enable all N tools? [Y/n/select]" — answer `Y`. Non-interactive one-liner: `printf 'n\nY\nY\n' | hermes mcp add <name> --url <url>`.
 - **Secret hygiene:** config.yaml headers must use `${MCP_..._KEY}` interpolation; the real credential lives only in `.env`. Before any backup push, confirm no real key leaked into config: `grep -c "<key-prefix>" config.yaml` → 0.
 - **Windows schtasks needs single-slash flags** (`/Create`, `/Run`) — MSYS/git-bash `//Create` is an invalid-argument error.
 - **Verify external dispatches landed before confirming to the user.** A claimed "sent" can silently never happen: if the agent's response is truncated mid-turn, the tool call after the truncation point never executes. Confirm via `GMAIL_LIST_THREADS` with `query: "in:sent to:<recipient>"` (or the send response's `labelIds:["SENT"]`) before telling the user it's sent. User rule (2026-08-06): "Next time double check if it is sent."

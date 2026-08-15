@@ -9,8 +9,21 @@ the project state changes (contract decisions, fixed defects, new conventions).
 - Two components: `android-project/` (this app) and `ghana-speech-admin/` (Express/TS backend + React admin)
 - App package: `com.ghanaspeech.collector`
 - Stack: Kotlin + Jetpack Compose + M3, Room, DataStore, Retrofit, WorkManager, Hilt, AudioRecord→WAV
-- Build: AGP 8.5.1, Kotlin 2.0.20, JDK 17, minSdk 23, targetSdk 34
-- **No JDK on PATH in the Hermes bash shell** — set `JAVA_HOME` (e.g. `/c/Program Files/Android/Android Studio/jbr`) before `./gradlew`, or Gradle exits 1 with "no java command found".
+- Build (bumped 2026-08-11, green assembleDebug): AGP 8.13.2, Kotlin 2.3.20, Hilt 2.57.2,
+  Room 2.8.4, Gradle wrapper 9.0.0, compileSdk 35, targetSdk 34, minSdk 23
+- **No JDK on PATH in the Hermes bash shell** — set `JAVA_HOME` (e.g. `/c/Program Files/Android/Android Studio/jbr`, JDK 21) before `./gradlew`, or Gradle exits 1 with "no java command found".
+- Toolchain version rules (each verified by failure, then by green build):
+  - Gradle 9.0.0 wrapper requires AGP 8.13+; AGP 9.x needs Gradle 9.1+.
+  - Kotlin ≤ 2.2 does NOT run on Gradle 9. Kotlin 2.3.20 does.
+  - Hilt 2.52 rejects Kotlin 2.3 stubs ("metadata version 2.3.0 > max 2.1.0"); 2.57.2 is the
+    newest Hilt that supports Gradle 9.0.0 without demanding AGP 9 (2.59+ needs AGP 9).
+  - Room 2.6.1 → 2.8.4 required for the same Kotlin-2.3 metadata reason.
+- gradle.properties on this 7.7GB-RAM machine is memory-hardened: `-Xmx1536m`,
+  `kotlin.compiler.execution.strategy=in-process`, `workers.max=1`, `parallel=false`.
+  Default multi-JVM profile (forked Kotlin daemon + parallel kapt) crashes the Gradle
+  daemon with native OOM (two verified `hs_err_pid*.log` crashes).
+- `local.properties` points to `C:/Users/bohen/AppData/Local/Android/Sdk` (was a Linux path
+  from another machine's clone — fixed 2026-08-11). SDK has platforms 34/35/36, build-tools 36.0.0, licenses accepted.
 - No test files exist (TESTING.md describes a plan, not tests).
 
 ## Android ↔ Backend Contract Facts

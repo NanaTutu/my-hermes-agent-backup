@@ -241,6 +241,14 @@ mcp_servers:
     headers:
       Authorization: Bearer ${MCP_COMPOSIO_API_KEY}
     enabled: true
+  vectcut:
+    command: C:/Users/bohen/Documents/Hermes/VectCutAPI/.venv/Scripts/python.exe
+    args:
+      - C:/Users/bohen/Documents/Hermes/VectCutAPI/mcp_server.py
+    enabled: true
+  ragflow:
+    url: http://127.0.0.1:9382/mcp
+    enabled: true
 
 # ── Security ──────────────────────────────────────────────────────────
 # Secret redaction is ON by default — strings that look like API keys,

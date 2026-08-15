@@ -43,7 +43,7 @@ The goal is production-quality, maintainable Android code: modular layers, expli
 | Background | WorkManager (CoroutineWorker) | System-managed retries/exponential backoff |
 | DI | Hilt (kapt) | Scoped singletons, worker injection |
 | Audio | AudioRecord + raw WAV (16-bit PCM mono, 16 kHz) | Research-grade ASR format |
-| Build | AGP 8.5.1, Kotlin 2.0.20, JDK 17, minSdk 23, targetSdk 34 | Check `app/build.gradle` for current pins |
+| Build | AGP 8.13.2, Kotlin 2.3.20, Hilt 2.57.2, Room 2.8.4, Gradle wrapper 9.0.0, JDK 21 (Android Studio jbr), compileSdk 35, targetSdk 34, minSdk 23 | Check `app/build.gradle` for current pins |
 
 ## Architecture Rules
 
@@ -87,10 +87,10 @@ Completion criteria for architecture changes:
 
 ## Build & Test Commands
 
-Windows shell is git-bash (POSIX syntax). `java` may be absent from a bare shell — locate JDK 17 or set `JAVA_HOME` first:
+Windows shell is git-bash (POSIX syntax). `java` is NOT on PATH — the only JDK is Android Studio's bundled runtime (JDK 21), and `JAVA_HOME` must be set per shell:
 
 ```bash
-export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # or your JDK 17 path
+export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"
 cd android-project
 ./gradlew assembleDebug        # build APK
 ./gradlew testDebugUnitTest    # JVM unit tests
@@ -98,6 +98,11 @@ cd android-project
 ./gradlew lint                 # Android lint + build checks
 ./gradlew app:dependencies --configuration debugRuntimeClasspath  # verify dep tree
 ```
+
+Toolchain version rules on this machine (2026-08, all verified by a green `assembleDebug`):
+- Gradle wrapper 9.0.0 needs AGP 8.13+; AGP 9.x requires Gradle 9.1+ (do not bump AGP to 9 without moving the wrapper).
+- Kotlin 2.3.20 is the first line that runs on Gradle 9 (`kotlin.compiler.execution.strategy=in-process` is set in gradle.properties on this 7.7GB-RAM machine because the default forked Kotlin daemon + kapt workers crash the Gradle daemon with native OOM — verified twice, `hs_err_pid*.log`).
+- Hilt is version-locked by metadata: Hilt 2.52's embedded kotlinx-metadata caps at 2.1.0 and rejects Kotlin 2.3 stubs; 2.57.2 is the newest Hilt that supports Gradle 9.0.0 without demanding AGP 9 (2.59+ requires AGP 9). Room must be ≥ 2.8 for the same metadata reason.
 
 Debug vs release: debug build should be the only variant with `HttpLoggingInterceptor.Level.BODY` and `applicationIdSuffix ".debug"`. Release: R8/minify on, BODY logging off.
 
@@ -118,7 +123,7 @@ Debug vs release: debug build should be the only variant with `HttpLoggingInterc
 
 ## Verification Checklist
 
-- [ ] `./gradlew assembleDebug` succeeds (JDK 17 configured).
+- [ ] `./gradlew assembleDebug` succeeds (JAVA_HOME → Android Studio jbr, JDK 21).
 - [ ] `./gradlew testDebugUnitTest` passes (or tests exist and are wired).
 - [ ] No `@SuppressLint("MissingPermission")` without a runtime permission flow guarding the call.
 - [ ] Retrofit baseUrl + all endpoint paths produce exactly one `api/v1`-style prefix (grep the interface and the DI module).
