@@ -2,19 +2,19 @@ Telegram creds in .env at C:\Users\bohen\AppData\Local\hermes; allowed user 8060
 §
 repo github.com/NanaTutu/my-hermes-agent-backup.git
 §
-Hermes aux vision: opencode-zen/mimo-v2.5-free (free vision model; gemini-3-flash paid; codex/copilot reject images).
+Hermes aux vision: opencode-zen/mimo-v2.5-free (free); gemini-3-flash paid; codex/copilot reject images.
 §
 Church rig: Behringer WING fullsize (FW 3.1, "Potters-Arena"), skill behringer-mixer-scenes validated against real CHURCH.snap.
 §
-Tutu wants FX trading competency in Hermes: fx-trading skill lives at skills/trading/fx-trading/ + SOUL 'Trading Mode' section; trading mentorship is a recurring topic.
+FX trading mentorship recurring; fx-trading skill at skills/trading/fx-trading/ + SOUL Trading Mode.
 §
-Double-check email dispatches actually landed (Gmail Sent folder) before confirming — one send was silently lost mid-turn.
+Double-check email dispatches landed (Gmail Sent) before confirming — one was silently lost.
 §
-CV/PDF ATS audit via PyMuPDF (uv venv ./.cvvenv): flag non-ATS fonts, body<10pt, name>20pt, margins<0.5in.
+CV/PDF ATS audit via PyMuPDF: flag non-ATS fonts, body<10pt, name>20pt, margins<0.5in.
 §
 TCL TV 172.20.10.3: volume ONLY via Cast (ADB keys don't move it); full details in skill tcl-tv-cast-control.
 §
-Home internet = Tutu's phone hotspot; box offline when he leaves; api.telegram.org DNS spikes = hotspot drops, NOT resolver bugs; gateway self-heals ~5min after return; fibre planned.
+gateway self-heals ~5min.
 §
 Real mic = Realtek Array resolved BY NAME in jarvis.py (MME IDs drift)
 §
@@ -22,6 +22,12 @@ Kotlin/Android GhaLingo (Documents\Hermes\GhaLingo): load kotlin-mobile-developm
 §
 CapCut 9.2 @ AppData\Local\CapCut\Apps (pixel-coords fallback); MCP 'vectcut' = VectCutAPI @ Documents\Hermes\VectCutAPI; profile jianying_pro_10 = CapCut 9.2 draft format.
 §
-RAGFlow: account on ragflow.kennyken.top (no server control); local MCP bridge 'ragflow'. Ghana Constitution KB: 'Article N' queries fail (numbers have no vector/BM25 signal; metadata filter is document-level). Fix = query-router: detect Article/Section/Clause N → exact citation lookup, else semantic retrieval.
+RAGFlow: acct ragflow.kennyken.top (no server control); MCP bridge 'ragflow'. Ghana Constitution KB 'Article N' queries fail (numbers lack vector/BM25 signal). Fix: query-router → exact citation for Article/Section/Clause N, else semantic.
 §
 GhaLingo Flutter rebuild @ Documents\Hermes\ghalingo_flutter: load flutter-development skill (state in references/ghalingo-flutter.md). USE_FAKE_API=true default; web audio=webm (WAV mobile-only).
+§
+hermesUI web UI for Hermes at C:\Users\bohen\hermesUI (start.bat/stop.bat; UI :8080, backend hermes serve :9119; stdlib server.py + vanilla JS).
+§
+Tutu's Hermes storage/deliverable folder: C:\Users\bohen\Documents\Hermes\Assets (capital A).
+§
+Tutu's PC: 8GB RAM, chronically memory-tight.

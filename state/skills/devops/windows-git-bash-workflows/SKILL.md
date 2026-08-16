@@ -66,6 +66,7 @@ some contexts; direct argument passing to native binaries is unreliable.
 
 **Fixes (either):**
 - `cd /c/Users/...` FIRST, then reference the bare filename: `cd /c/Users/bohen/AppData/Local/Temp && python script.py`.
+- Pass a NATIVE Windows path with forward slashes as the argument: `python "C:/Users/bohen/script.py"` works cleanly — it is the MSYS `/c/Users/...` form that gets double-converted to `C:\c\Users\...`.
 - Avoid filesystem handoff entirely: pipe data via stdin (`python gen.py | curl --data-binary @- ...`).
 
 ### 3. Windows Python cannot write to MSYS `/tmp`
@@ -87,6 +88,40 @@ the tool's regex handling is unreliable with `|` groups on CRLF files.
 ### 5. `python` is uv-managed on this box (cpython 3.11), `pip` absent
 
 Use stdlib-only scripts; don't assume `pip install` works without `uv` or a venv.
+
+## Headless console subprocesses (Windows Python)
+
+Spawning a console app (`hermes serve`, `python server.py`, `node`) as a
+subprocess and wanting NO visible terminal window is a classic trap:
+
+- **CREATE_NO_WINDOW is IGNORED when combined with DETACHED_PROCESS** (OS
+  documented), AND CPython 3.11 does NOT translate CREATE_NO_WINDOW into a
+  hidden STARTUPINFO window (it only does that with `shell=True`). So
+  `DETACHED_PROCESS | CREATE_NO_WINDOW` still pops a console.
+- **Correct combo: `CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW`** — drop
+  DETACHED_PROCESS entirely. DETACHED_PROCESS alone allocates a FRESH console
+  (visible window); CREATE_NO_WINDOW alone gives no console at all.
+- **Verify empirically, don't trust the flag docs:** have the child print
+  `ctypes.windll.kernel32.GetConsoleWindow()` (0 = no console). Measured on
+  this host: inherit / DETACHED / DETACHED|NEW_GROUP / DETACHED|NEW_GROUP|NO_WINDOW
+  all give hwnd != 0 (window); NEW_GROUP|NO_WINDOW and NO_WINDOW-only give hwnd 0.
+- `CREATE_NO_WINDOW` is on `subprocess` itself (3.7+): `subprocess.CREATE_NO_WINDOW`.
+
+Full flag matrix + reproduction + kill/relaunch recipe:
+`references/headless-subprocess-and-respawn.md`.
+
+## Diagnosing a process that "keeps reopening" on Windows
+
+A window that respawns after you close it = an autostart entry + a watchdog
+loop, not a crash. Trace the chain:
+
+1. Find the process AND its parent — the parent is what relaunches it:
+   `powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { \$_.CommandLine -match '<needle>' } | Select ProcessId,ParentProcessId,Name,CommandLine | Format-List"`.
+2. Check the three autostart homes: Startup folder (user + common), registry
+   Run/RunOnce keys, and `schtasks //query //fo LIST //v`.
+3. A wrapper that `Popen`s a child + a `while True: sleep(30); restart-if-down`
+   watchdog = the respawn loop. **Kill the WRAPPER (watchdog) FIRST, then the
+   child** — otherwise the watchdog repopulates it within one interval.
 
 ## Binary Body Smoke-Test Pattern
 

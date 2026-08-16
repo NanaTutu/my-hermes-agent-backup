@@ -16,6 +16,7 @@ dependencies).
 - `kb.py` — the CLI (plain Python 3, no external deps)
 - `tasks.json` — the board data (source of truth)
 - `README.md` — full docs and guardrail rules (authoritative; keep in sync)
+- `server.py` + `static/` — **kanbanUI** web board at http://127.0.0.1:8090/ (start.bat/stop.bat; `server.py --install-startup` auto-starts it at login). Same `tasks.json` store as the CLI — same guardrails apply (single-writer, atomic writes).
 
 ## Commands (alias `kb` already in Tutu's .bashrc)
 ```
