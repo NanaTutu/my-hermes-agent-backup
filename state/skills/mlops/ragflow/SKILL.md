@@ -73,12 +73,14 @@ hermes mcp list                                           # confirm ✓ enabled 
 - `GET /api/v1/datasets`, `GET /api/v1/chats` — list (Bearer auth)
 - `POST /api/v1/retrieval` — `{question, dataset_ids[], document_ids[], similarity_threshold, vector_similarity_weight, top_k, keyword, page, page_size}`
 - `GET /api/v1/datasets/{id}/documents?page=&page_size=` — list documents
+- `GET /api/v1/datasets/{id}/documents/{doc_id}/chunks?page=&page_size=` — list a document's chunks. **page_size max is 100** (128 returns `code:100`; 1024 returns `data:null`). Paginate 100/page over `data.total`.
 - API key location: RAGFlow UI → avatar (top-right) → "API" / "API Key"
 
 ## Pitfalls
 
 - Exposing the MCP server publicly in self-host mode is effectively unauthenticated (server-side key, not per-request). RAGFlow docs say bind 127.0.0.1. Running the local bridge (key trick above) sidesteps this entirely.
 - Reverse-proxying the RAGFlow UI does not make MCP reachable — they are different ports (9380 vs 9382).
+- The chunks-listing endpoint returns content with the parent heading PREPENDED (e.g. `CHAPTER I — THE CONSTITUTION\nArticle 1\n1. SUPREMACY...`), while `/api/v1/retrieval` returns content starting at the article. So "Article N" is often NOT the first line of a listed chunk — match it with a multiline regex (`^Article\s+(\d+)$`), not `content.split("\n")[0]`.
 
 ## References
 
