@@ -1,8 +1,8 @@
-Telegram creds in .env at C:\Users\bohen\AppData\Local\hermes; allowed user 806045604 (DM); restart via `hermes gateway restart`; `hermes send --to telegram` works even with gateway down.
+Telegram creds in .env at AppData\Local\hermes; user 806045604 (DM); restart `hermes gateway restart`; `hermes send --to telegram` works with gateway down.
 §
 repo github.com/NanaTutu/my-hermes-agent-backup.git
 §
-Hermes aux vision: opencode-zen/mimo-v2.5-free (free); gemini-3-flash paid; codex/copilot reject images.
+Hermes aux vision: opencode-zen/mimo-v2.5 (free); gemini-3-flash paid.
 §
 Church rig: Behringer WING fullsize (FW 3.1, "Potters-Arena"), skill behringer-mixer-scenes validated against real CHURCH.snap.
 §
@@ -10,13 +10,13 @@ FX trading mentorship recurring; fx-trading skill at skills/trading/fx-trading/ 
 §
 Double-check email dispatches landed (Gmail Sent) before confirming — one was silently lost.
 §
-CV/PDF ATS audit via PyMuPDF: flag non-ATS fonts, body<10pt, name>20pt, margins<0.5in.
+ATS audit via PyMuPDF: flag non-ATS fonts, body<10pt, margins<0.5in.
 §
 TCL TV 172.20.10.3: volume ONLY via Cast (ADB keys don't move it); full details in skill tcl-tv-cast-control.
 §
 gateway self-heals ~5min.
 §
-Real mic = Realtek Array resolved BY NAME in jarvis.py (MME IDs drift)
+Real mic = Realtek Array resolved BY NAME in jarvis.py
 §
 Kotlin/Android GhaLingo (Documents\Hermes\GhaLingo): load kotlin-mobile-development skill (state in references/ghalingo.md); only JDK = Android Studio jbr (JDK 21, set JAVA_HOME per shell).
 §
@@ -31,3 +31,5 @@ hermesUI web UI for Hermes at C:\Users\bohen\hermesUI (start.bat/stop.bat; UI :8
 Tutu's Hermes storage/deliverable folder: C:\Users\bohen\Documents\Hermes\Assets (capital A).
 §
 Tutu's PC: 8GB RAM, chronically memory-tight.
+§
+Church anniversary campaign (23–27 Sep 2026 target; dates unconfirmed): docs in Documents\Hermes\Assets\church-anniversary-campaign-*.md. Social=flyers+videos; Projection=Sun teaser videos+streaming; no theme logo yet.
