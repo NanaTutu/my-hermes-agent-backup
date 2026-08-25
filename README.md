@@ -1,130 +1,105 @@
 # Hermes State Backup
 
-Private backup of **Tutu's Hermes agent configuration state**, excluding all
-secrets and credentials.
+Portable, secrets-free mirror of **Tutu's Hermes Agent** configuration state,
+synced to GitHub so the same persona, memory, skills, and cron jobs can be
+recreated on any machine — by a human or by another agent.
 
-## Auto-trigger
+**If you are an AI agent reading this:** you are looking at the durable
+identity of one Hermes instance, *not* application source code. You will do one
+of two things here:
 
-A user plugin at `C:\Users\bohen\AppData\Local\hermes\plugins\hermes-backup\`
-registers an `on_session_finalize` hook (fires on every Hermes session exit).
-It launches `hermes_backup.py` as a detached background process, logging to
-`backup.log` in this directory. Verify with:
+1. **Consume** — restore this agent's state onto your own `$HERMES_HOME`.
+2. **Update** — push new state back to this repo.
 
-    hermes plugins list --user --plain
+Read **Roles** first. Only one machine is allowed to push.
 
-## What is backed up
+## Repo layout
 
-The `state/` directory mirrors a strict **whitelist** of re-creatable,
-non-sensitive Hermes state:
+| Path | What it is | Portable? |
+|---|---|---|
+| `state/SOUL.md` | Agent persona / system prompt | ✅ deployed to consumers |
+| `state/memories/` | `MEMORY.md` + `USER.md` — durable memory + user profile | ✅ |
+| `state/skills/` | Installed skills (grouped by category) | ✅ |
+| `state/cron/jobs.json` | Scheduled job definitions | ✅ |
+| `state/config.yaml` | Settings (never credentials) | ❌ machine-local |
+| `state/gateway_state.json`, `state/channel_directory.json` | Routing / channel state | ❌ machine-local |
+| `state/context_length_cache.yaml`, `state/provider_models_cache.json` | Caches | ❌ machine-local |
+| `hermes_backup.py` | AUTHOR-side: mirror → scan → commit → push | — |
+| `hermes_sync.sh` | Role-aware entry point (author=push, consumer=pull+deploy) | — |
 
-- `config.yaml` — settings (never credentials)
-- `SOUL.md` — agent persona
-- `memories/` — durable memory + user profile (markdown only)
-- `skills/` — installed skills (no curator backups / usage db)
-- `cron/jobs.json` — scheduled job definitions
-- `channel_directory.json`, `gateway_state.json`
-- `context_length_cache.yaml`, `provider_models_cache.json`
+## Roles — single writer / many readers
 
-## What is NEVER backed up
+This repo has exactly **one writer**.
 
-Secrets, credentials, PII, and runtime artifacts are excluded by a whitelist
-+ hard-forbid list, then verified by a secret-shape scan before commit:
+- **AUTHOR** = the Windows box (`C:\Users\bohen`). It is the *only* machine
+  that pushes. The `hermes-backup` plugin's `on_session_finalize` hook runs
+  `hermes_backup.py` on every session exit.
+- **CONSUMER** = any other box (Linux / macOS / BSD). It pulls
+  fast-forward-only and deploys the portable subset. It **never** pushes.
 
-- `.env` (all API keys / tokens, including the GitHub token itself)
-- `auth.json` / OAuth credential stores
-- `state.db` and all `*.db` / sqlite files (session store)
-- `sessions/`, `logs/`, caches, images, audio
-- private keys / certificates
-- the `hermes-agent/` source tree
+`hermes_sync.sh` auto-detects the role from the OS (Windows → author, anything
+else → consumer). Override with `HERMES_ROLE=author|consumer`.
 
-The secret scan looks for credential *shapes* (OpenAI/GitHub/Slack/AWS/Google
-keys, JWTs, private-key blocks) and aborts the push if anything suspicious is
-found — never committing it.
+## Consume — restore onto a new agent
 
-## How to run manually
+```bash
+git clone https://github.com/NanaTutu/my-hermes-agent-backup.git
+cd my-hermes-agent-backup
+./hermes_sync.sh                 # auto role, or: HERMES_ROLE=consumer ./hermes_sync.sh
+```
+
+The script pulls fast-forward-only, then copies **only the portable trees**
+(`SOUL.md`, `skills/`, `memories/`, `cron/`) into `$HERMES_HOME` (`~/.hermes`
+on Unix, `%LOCALAPPDATA%\hermes` on Windows).
+
+It deliberately does **not** touch machine-local files — `config.yaml`,
+`gateway_state.json`, `channel_directory.json`, and the caches — because those
+encode local paths, API identity, routing, and process state that legitimately
+differ between boxes.
+
+To restore by hand (no script), copy the portable trees into `$HERMES_HOME`
+directly. Secrets (`auth.json`, `.env`) must be recreated separately — they are
+intentionally not in this backup.
+
+## Update — push (AUTHOR only)
+
+On the author box, either let the plugin run automatically on session exit, or
+run manually:
 
 ```bash
 python C:\Users\bohen\hermes-backup\hermes_backup.py
 ```
 
-The GitHub token is read from `$HERMES_HOME/.env` at push time and sent as an
-ephemeral Authorization header. It is never stored in this repo or in git
-config.
+The script, in order:
 
-## How it runs automatically
+1. Whitelist-copies current state from `$HERMES_HOME` into `state/`.
+2. Runs a secret-shape scan and **aborts before pushing** if any
+   credential-looking value is found.
+3. `git add -A` → commit → `git push -u origin main`, using a GitHub token read
+   transiently from `$HERMES_HOME/.env` (never stored in the repo or in git
+   config).
 
-A Hermes shell hook fires on the `on_session_finalize` event (session close) to
-run this same script, so the backup stays current after each session.
+## Never in this repo
 
-## Two-machine model (single writer)
+- `.env` and every API key / token (including the GitHub token itself)
+- `auth.json` and other OAuth credential stores
+- `state.db` / any sqlite database (the session store)
+- `sessions/`, `logs/`, caches, images, audio
+- private keys / certificates
+- the `hermes-agent/` source tree
 
-This repo is the **single writer / many readers** config pipeline for Tutu's two
-Hermes installs:
+Before adding a new file to the backup, check it against this list plus the
+whitelist and secret scan — do not assume it will (or should) sync.
 
-- **Windows box = AUTHOR.** Builds/edits skills and SOUL here; the
-  `on_session_finalize` backup plugin (Hermes Backup Bot identity) is the *only*
-  thing that pushes new commits to this repo.
-- **Linux box = CONSUMER.** Mirrors this Windows config. On it, `hermes_sync.sh`
-  auto-detects the CONSUMER role, so it never pushes back — it pulls (ff-only)
-  and deploys the portable snapshot:
+## Invariants — do not violate
 
-```bash
-# inside the Linux clone (~/my-hermes-agent-backup), after cloning:
-./hermes_sync.sh
-```
-
-`hermes_sync.sh` refreshes the snapshot, then copies the **portable** trees —
-`SOUL.md`, `skills/`, `memories/`, `cron/` — into `$HERMES_HOME`
-(`~/.hermes` on Unix). It deliberately does **not** touch machine-local files
-(`config.yaml`, `gateway_state.json`, `channel_directory.json`, the caches);
-those stay per-machine because they encode local paths, API identity, routing
-and process state that legitimately differ between boxes.
-
-## Deploy on any Hermes agent (OS-aware)
-
-`hermes_sync.sh` is the **single entry point** for this repo. Drop the clone on
-any Hermes box and run it — the script auto-detects the OS, picks the box's
-role, and acts accordingly, so you never have to reconfigure per machine:
-
-```
-+----------------+---------------------------+------------------------------------+
-| OS             | role (auto)               | what it does                        |
-+----------------+---------------------------+------------------------------------+
-| Windows        | AUTHOR (single writer)   | runs hermes_backup.py -> git PUSH   |
-| Linux/macOS/BSD| CONSUMER (reader)        | pulls ff-only + deploys portable   |
-+----------------+---------------------------+------------------------------------+
-```
-
-Concretely:
-
-```bash
-./hermes_sync.sh                          # pick role by OS
-HERMES_ROLE=consumer ./hermes_sync.sh     # force reader (e.g. a shared headless box)
-HERMES_ROLE=author   ./hermes_sync.sh     # force writer (e.g. a second authoring box)
-```
-
-Rules of thumb:
-
-- **Keep exactly one AUTHOR.** The Windows box is the designated one. Pushing
-  from more than one box is what previously diverged the branch and caused
-  rejected pushes. If you add another authoring machine, you take over manual
-  conflict-handling on repo.
-- **CONSUMER never pushes.** It refreshes the snapshot and copies only the
-  portable trees (`SOUL.md`, `skills/`, `memories/`, `cron/`) into
-  `$HERMES_HOME` (`~/.hermes` on Unix, `%LOCALAPPDATA%\hermes` on Windows).
-  It deliberately skips machine-local files — `config.yaml`,
-  `gateway_state.json`, `channel_directory.json`, the caches — because those
-  encode local paths/API identity/routing and must stay per-box.
-- **Auto-run on the AUTHOR** is wired via the `hermes-backup` plugin's
-  `on_session_finalize` hook (fires each session close). On a CONSUMER, hook
-  `hermes_sync.sh` to a scheduled job / login so it re-syncs periodically.
-
-`hermes_backup.py` and `hermes_sync.sh` each already resolve `$HERMES_HOME` by
-OS (`~/.hermes` on Unix, `%LOCALAPPDATA%\hermes` on Windows), so they behave
-correctly on either kind of box.
-
-## Restore
-
-Check out `state/` from this repo and copy the files back into your
-`$HERMES_HOME`. Secrets (`auth.json`, `.env`) must be recreated separately —
-they are intentionally not in this backup.
+1. **One author.** Pushing from a second machine is what has previously
+   diverged the branch and caused rejected pushes.
+2. **Never commit secrets.** The scan is a safety net, not permission to relax
+   the whitelist.
+3. **Portable vs machine-local is fixed.** `config.yaml`, `gateway_state.json`,
+   `channel_directory.json`, and the caches are machine-local by design — do
+   not "improve" the consumer to deploy them.
+4. **Prefer the scripts.** Both `hermes_backup.py` and `hermes_sync.sh` already
+   resolve `$HERMES_HOME` per-OS and enforce the role split; do not hand-roll
+   the sync.

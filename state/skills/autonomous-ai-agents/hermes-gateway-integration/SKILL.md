@@ -144,6 +144,37 @@ Gotchas:
    boots are ~5s (warm caches). Design launchers to REUSE a healthy backend
    (probe `/api/health` + a token-gated endpoint like `/api/config`).
 
+## Troubleshooting "can't access / won't reply" (page loads, agent silent)
+
+The #1 cause is NOT the servers being down — it's a **session pinned to a model
+that is no longer available** (free-tier models get churned/removed upstream
+without notice). Diagnose in this order:
+
+1. `netstat -ano | grep -E ':(8080|9119)'` — both listeners present = servers up.
+2. `curl http://127.0.0.1:8080/` → HTTP 200 = static UI fine.
+3. `curl -H "X-Hermes-Session-Token: <token>" http://127.0.0.1:9119/api/config`
+   → the `"model"` field. If it's healthy but the backend log shows a *different*
+   model failing, the default is fine and a SESSION is pinned elsewhere.
+4. Read the backend log — `"Model is unavailable"` / HTTP 400 with an explicit
+   `Model:` + `Endpoint:` line is the signature.
+5. `grep -c "<dead-model>" ~/AppData/Local/hermes/state.db` plus the newest
+   `~/AppData/Local/hermes/sessions/request_dump_*.json` (filename embeds the
+   stored session id; body carries `request.body.model` + `reason`).
+
+**Fix (session-scoped):** send `/model <working-model>` (e.g. `/model
+deepseek-v4-pro`) — `prompt.submit` forwards `/...` text to the slash-command
+handler, which re-pins the current session. Or start a new chat / reload the
+page to get a fresh session on the configured default.
+
+**Restart does NOT help** — the session's model is persisted in state.db at
+`session.create` time and re-resumed on boot.
+
+**Pitfall:** a frontend model dropdown that only feeds `session.create` (not
+`prompt.submit`) cannot switch a live session's model. Only `/model` re-pins a
+live session — don't tell the user to use the dropdown to fix one.
+
+Full command set + the 2026-08-25 case study: `references/troubleshooting-model-unavailable.md`.
+
 ## Building a client: the proven pattern (zero-dependency)
 
 1. **Own the backend**: launcher generates a token, starts `hermes serve
