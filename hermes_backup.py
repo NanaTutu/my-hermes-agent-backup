@@ -69,6 +69,7 @@ WHITELIST = [
     "SOUL.md",
     "memories",
     "skills",
+    "scripts",
     "cron/jobs.json",
     "channel_directory.json",
     "gateway_state.json",

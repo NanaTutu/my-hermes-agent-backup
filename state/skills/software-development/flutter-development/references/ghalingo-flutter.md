@@ -34,8 +34,13 @@ contract decisions, fixed defects, or conventions change. (The Kotlin original l
   vertical slice; fake repository (USE_FAKE_API default true); web recording via `record`
   (dev-preview webm); device_preview phone frame in Chrome. Verified: analyze clean,
   6/6 tests (4 contract models + 2 auth controller), `flutter build web` green, app live.
-- **M2 NEXT:** offline-first queue (persist pending recordings + metadata) + chunked
-  start→chunk→complete upload pipeline with resume + retry cap.
+- **M2 RE-SCOPED (2026-08-25):** "make it fully offline for now" — replace the fake in-memory
+  repo with a **sqflite-backed local repo** (mobile) + `sqflite_common_ffi_web` (web) behind a
+  single `databaseFactory` switch. Offline-first: local auth (salted SHA-256 + persisted
+  session row), seeded missions/prompts on first launch, recordings persisted as BLOBs +
+  metadata (status pending/uploaded/failed, retry_count). Web recording persists via
+  blob-URL→bytes fetch (conditional import, pitfall 10). Chunked start→chunk→complete upload
+  and backend sync stay deferred to M3+.
 - **M3:** real backend auth (argon2/bcrypt + JWT), token in flutter_secure_storage,
   auth redirect in go_router.
 

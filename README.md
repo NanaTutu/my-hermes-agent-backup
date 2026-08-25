@@ -21,11 +21,27 @@ Read **Roles** first. Only one machine is allowed to push.
 | `state/memories/` | `MEMORY.md` + `USER.md` — durable memory + user profile | ✅ |
 | `state/skills/` | Installed skills (grouped by category) | ✅ |
 | `state/cron/jobs.json` | Scheduled job definitions | ✅ |
+| `state/scripts/` | Portable helper scripts (routing, mixer/TV control) | ✅ |
 | `state/config.yaml` | Settings (never credentials) | ❌ machine-local |
 | `state/gateway_state.json`, `state/channel_directory.json` | Routing / channel state | ❌ machine-local |
 | `state/context_length_cache.yaml`, `state/provider_models_cache.json` | Caches | ❌ machine-local |
 | `hermes_backup.py` | AUTHOR-side: mirror → scan → commit → push | — |
 | `hermes_sync.sh` | Role-aware entry point (author=push, consumer=pull+deploy) | — |
+
+## Model routing (OpenCode Go)
+
+This state ships an intent→model router for the `opencode-go` provider:
+
+- **Aliases** — `state/config.yaml` under `model.aliases` defines one-word
+  `/model` switches (`code`, `repo`, `vision`, `eye`, `write`, `long`, `fast`,
+  `flash`, `cheap`, `reason`) mapped to the best OpenCode Go model per intent.
+  Aliases live in `config.yaml`, which is author-side only and not deployed to
+  consumers — re-apply on a fresh box.
+- **Skill** — `state/skills/autonomous-ai-agents/model-router/` classifies a
+  task's intent and recommends (or one-shot-executes) the best model.
+- **Script** — `state/scripts/route_model.py` is a rule-based classifier:
+  `python route_model.py "<prompt>"` prints the model + alias; `--list` shows
+  the full table.
 
 ## Roles — single writer / many readers
 
@@ -49,7 +65,7 @@ cd my-hermes-agent-backup
 ```
 
 The script pulls fast-forward-only, then copies **only the portable trees**
-(`SOUL.md`, `skills/`, `memories/`, `cron/`) into `$HERMES_HOME` (`~/.hermes`
+(`SOUL.md`, `skills/`, `memories/`, `cron/`, `scripts/`) into `$HERMES_HOME` (`~/.hermes`
 on Unix, `%LOCALAPPDATA%\hermes` on Windows).
 
 It deliberately does **not** touch machine-local files — `config.yaml`,

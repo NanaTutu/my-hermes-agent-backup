@@ -149,6 +149,35 @@ doubt, always pipe (the `| curl --data-binary @-` form removes the file entirely
 write smoke artifacts into the repo tree; gitignore `uploads/`-style runtime dirs or delete
 them after the run.
 
+## Reading curl exit codes on MSYS (offline vs. false alarm)
+
+`curl -o /dev/null` on MSYS/git-bash can exit non-zero even on SUCCESS — a
+spurious "write error" (exit 23) from writing to the MSYS-emulated `/dev/null`
+(curl is a native Windows binary; the MSYS `/dev/null` path can fail a write
+even though the transfer completed). **Gate on the `-w` output, never the exit
+code:**
+
+```bash
+curl -s -o /dev/null -w "%{http_code} in %{time_total}s\n" -m 15 https://github.com
+```
+
+Interpret the result:
+- `200 in 0.7s` (a real HTTP status + sub-second time) = **UP** — even if the
+  shell also prints `FAILED: 23`. The 23 is the `/dev/null` write quirk, not a
+  real failure.
+- `000 in ~12s` (http_code `000` = no response at all) + `FAILED: 28` =
+  genuinely offline / timed out.
+
+To characterize a box-wide outage, probe several targets and compare — all
+`000` means the whole internet path is down; only one host `000` means a
+specific host/route problem:
+
+```bash
+for u in https://github.com https://api.github.com https://1.1.1.1; do
+  printf '%s -> ' "$u"; curl -s -o /dev/null -w "%{http_code} in %{time_total}s\n" -m 12 "$u";
+done
+```
+
 ## Verification of this skill's advice
 
 - Wrapper-script + foreground run: exit 0, full contract chain passed (register → missions

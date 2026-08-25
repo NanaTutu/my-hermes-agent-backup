@@ -39,6 +39,7 @@ python test.py <input.md> <build.js> [<output.docx>] [must_contain_substrings...
 
 ## Gotchas (all hit in real runs)
 
+- **On Windows git-bash, pass NATIVE Windows paths to `node build.js`.** MSYS paths (`/c/Users/...`) get mangled by node — it resolves them as `C:\c\Users\...` and throws `ENOENT`. Always pass `C:\Users\...` (or `C:/Users/...`) for BOTH input and output args, even when invoked from a bash shell.
 - **`require('docx/package.json')` throws** `ERR_PACKAGE_PATH_NOT_EXPORTED` — the package's `exports` map blocks the subpath. Don't probe the version that way; the install either succeeded or `npm install` already errored.
 - **docx-js emits `<w:t xml:space="preserve">`**, not bare `<w:t>`. When asserting on text in `word/document.xml`, count `<w:t` (with a space) — counting `<w:t>` returns 0 even though text is present.
 - **Tables need dual widths.** Set `columnWidths` on the `Table` AND `width` on every `TableCell`, all in `WidthType.DXA`, summing to the table width. Content width = page width − 2×margin (A4 = 11906 DXA, 1" margin = 1440). PERCENTAGE widths break in Google Docs.

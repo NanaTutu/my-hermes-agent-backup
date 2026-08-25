@@ -44,7 +44,7 @@ backend work, Flutter package publishing, or ADB TV control (`android-tv-adb-con
 | Network | dio + interceptor (auth header + debug logging) | Retrofit/OkHttp analog |
 | Auth token | `TokenStore` provider read by a dio interceptor | Repository stays auth-agnostic |
 | Audio | `record` (web=MediaRecorder webm; mobile=native 16 kHz WAV) | See pitfall 8 |
-| Local DB | deferred (Drift or Hive) — milestone 2 | abstracted behind repository interface |
+| Local DB | sqflite (mobile) + sqflite_common_ffi_web (web) | single databaseFactory switch; see pitfall 9 |
 | Build | Flutter 3.35.7 / Dart 3.9.2 (stable) | on PATH (see Toolchain) |
 
 ## Architecture Rules
@@ -121,6 +121,18 @@ them requires a restart, not hot reload.
 8. **Web audio is webm/opus, not research WAV.** Browsers only expose MediaRecorder, so
    16 kHz / 16-bit PCM mono WAV is a **mobile-only** capture path. Treat web recording as a
    dev-preview convenience and document it as such in the recorder service.
+9. **sqflite is mobile-only — pair it with `sqflite_common_ffi_web` for web.** One
+   `DatabaseFactory` switch (`kIsWeb ? databaseFactoryFfiWeb : databaseFactory`) keeps a
+   single SQL codebase across targets. Use `getDatabasesPath()` (sqflite) for the mobile
+   path and a virtual `'ghalingo.db'` name on web. Caveat: `sqflite_common_ffi_web` loads
+   `sqlite3.wasm` from a CDN by default — bundle the wasm in `web/assets` for a truly
+   offline web build.
+10. **Persisting web audio needs bytes, not the blob URL.** `record` 5.x `stop()` returns a
+    `blob:` URL on web (ephemeral, gone on reload) vs a real file path on mobile. To store
+    offline, read bytes through a **conditional import**: `dart:io File(path).readAsBytes()`
+    on mobile, `dart:html HttpRequest.request(path, responseType: 'arraybuffer')` then
+    `.response.asUint8List()` on web. Use `if (dart.library.io) … if (dart.library.html) …`
+    imports so neither `dart:io` nor `dart:html` leaks into the wrong build.
 
 ## Verification Checklist
 

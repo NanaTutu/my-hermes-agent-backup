@@ -110,10 +110,10 @@ else
 fi
 
 # Deploy ONLY the portable trees (authored, machine-independent):
-#   SOUL.md, skills/, memories/, cron/  ->  LIVE_HOME
+#   SOUL.md, skills/, memories/, cron/, scripts/  ->  LIVE_HOME
 # config.yaml, gateway_state.json, channel_directory.json, caches are NOT copied
 # (they are machine-local by design — paths, API identity, routing, process).
-PORTABLE_TREES=(SOUL.md skills memories cron)
+PORTABLE_TREES=(SOUL.md skills memories cron scripts)
 has_any=0
 for e in "${PORTABLE_TREES[@]}"; do [[ -e "$SNAPSHOT_DIR/$e" ]] && has_any=1; done
 (( has_any == 1 )) || die "portable snapshot empty/absent under $SNAPSHOT_DIR"
