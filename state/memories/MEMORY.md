@@ -24,7 +24,7 @@ CapCut 9.2 @ AppData\Local\CapCut\Apps (pixel-coords fallback); MCP 'vectcut' = 
 §
 RAGFlow: acct ragflow.kennyken.top (no server control); MCP bridge 'ragflow'. Ghana Constitution KB 'Article N' queries fail (numbers lack vector/BM25 signal). Fix: query-router → exact citation for Article/Section/Clause N, else semantic.
 §
-GhaLingo Flutter rebuild @ Documents\Hermes\ghalingo_flutter: load flutter-development skill (state in references/ghalingo-flutter.md). USE_FAKE_API=true default; web audio=webm (WAV mobile-only).
+GhaLingo Flutter @ Documents\Hermes\ghalingo_flutter: load flutter-development skill (state in refs/ghalingo-flutter.md). Offline SQLite (sqflite+ffi_web); web audio=webm (WAV mobile-only).
 §
 hermesUI web UI for Hermes at C:\Users\bohen\hermesUI (start.bat/stop.bat; UI :8080, backend hermes serve :9119; stdlib server.py + vanilla JS).
 §
